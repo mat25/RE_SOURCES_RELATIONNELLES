@@ -27,6 +27,7 @@
       display: flex;
       justify-content: space-between;
       padding: 0 3rem ;
+      border-bottom: 4px solid rgba(13, 52, 158, 0.15);
     }
 
     .title{

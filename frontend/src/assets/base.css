@@ -58,6 +58,10 @@
   font-weight: normal;
 }
 
+*{
+  font-family: "Apple SD Gothic Neo", cursive;
+}
+
 body {
   min-height: 100vh;
   color: var(--color-text);
