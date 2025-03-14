@@ -1,28 +1,19 @@
 import 'package:flutter/material.dart';
+import 'pages/home_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Ma Page d'Accueil"),
-      ),
-      body: Center(
-        child: Text('Bienvenue dans l\'application Flutter !'),
-      ),
+      title: 'Flutter API Demo',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const HomePage(),
     );
   }
 }
