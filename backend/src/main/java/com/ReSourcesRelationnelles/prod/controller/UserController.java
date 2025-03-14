@@ -16,7 +16,12 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("/users")
+    // Sérialisation automatique grace a Jackson pour renvoyer du JSON
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+    @GetMapping("/user")
+    public List<User> getUserByName() {
+        return userRepository.findByEmail("test@email.fr");
     }
 }
