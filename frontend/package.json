@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "test:unit": "vitest"
+    "preview": "vite preview"
   },
   "dependencies": {
     "pinia": "^3.0.1",
@@ -18,14 +17,10 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.0.0",
+    "naive-ui": "^2.41.0",
+    "vfonts": "^0.0.3",
     "vite": "^6.2.1",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vitest": "^3.0.8"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
   }
-
 }
