@@ -1,8 +1,11 @@
 <template>
 
-<Header/>
+  <Header>
+    <NavigationBar></NavigationBar>
+  </Header>
 
 </template>
+
 
 <script >
 import { CashOutline as CashIcon } from '@vicons/ionicons5'
@@ -18,3 +21,8 @@ export default defineComponent({
   }
 })
 </script>
+
+
+<style scoped>
+
+</style>
