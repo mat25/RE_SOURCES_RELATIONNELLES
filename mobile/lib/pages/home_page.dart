@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../repositories/user_repository.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import '../repositories/ressource_repository.dart';
+import '../models/ressource.dart';
 import '../core/api/api_client.dart';
-import '../models/user.dart';
 import '../widgets/app_scaffold.dart';
-import '../widgets/header.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -14,41 +13,87 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final userRepository = UserRepository(ApiClient());
-  late Future<User> user;
+  final ressourceRepository = RessourceRepository(ApiClient());
+  late Future<List<Ressource>> ressources;
 
   @override
   void initState() {
     super.initState();
-    user = userRepository.getUser(2);
+    ressources = ressourceRepository.getRessources();
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Accueil',
-      body: FutureBuilder<User>(
-        future: user,
+      title: '(RE)SOURCES RELATIONNELLES',
+      body: FutureBuilder<List<Ressource>>(
+        future: ressources,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            final user = snapshot.data!;
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: NetworkImage(user.avatar),
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CarouselSlider(
+                  options: CarouselOptions(
+                    height: 300,
+                    autoPlay: true,
+                    enlargeCenterPage: true,
+                    enableInfiniteScroll: true,
+                    autoPlayInterval: const Duration(seconds: 3),
+                    viewportFraction: 0.8,
                   ),
-                  SizedBox(height: 12),
-                  Text('Nom : ${user.name}', style: TextStyle(fontSize: 20)),
-                  Text('Email : ${user.email}', style: TextStyle(fontSize: 16)),
-                ],
-              ),
+                  items: snapshot.data!.map((ressource) {
+                    return Builder(
+                      builder: (context) {
+                        return Card(
+                          color: Color(
+                            int.parse(ressource.color.replaceFirst('#', '0xff')),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  ressource.name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Année : ${ressource.year}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Pantone : ${ressource.pantoneValue}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white60,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
             );
           } else {
             return const Center(child: Text('Aucune donnée disponible'));

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'header.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
 class AppScaffold extends StatelessWidget {
   final String title;
@@ -13,36 +14,45 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<UserProvider>().user;
+
     return Scaffold(
-      appBar: AppHeader(title: title),
+      appBar: AppBar(title: Text(title)),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text('Menu', style: TextStyle(color: Colors.white)),
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.white),
+              child: user != null
+                  ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(user.avatar),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('${user.name}', style: const TextStyle(fontSize: 16)),
+                  Text('${user.email}', style: const TextStyle(fontSize: 14)),
+                ],
+              )
+                  : const Center(child: CircularProgressIndicator()),
             ),
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Accueil'),
-              onTap: () {
-                Navigator.pushNamed(context, '/home');
-              },
+              onTap: () => Navigator.pushNamed(context, '/home'),
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Paramètres'),
-              onTap: () {
-                Navigator.pushNamed(context, '/settings');
-              },
+              onTap: () => Navigator.pushNamed(context, '/settings'),
             ),
             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Déconnexion'),
-              onTap: () {
-                Navigator.pushReplacementNamed(context, '/login');
-              },
+              onTap: () => Navigator.pushReplacementNamed(context, '/login'),
             ),
           ],
         ),

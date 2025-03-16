@@ -14,12 +14,12 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    final data = json['data']; // ✅ Récupère la partie 'data'
+    final data = json['data'];
     return User(
       id: data['id'] ?? 0,
-      name: '${data['first_name'] ?? ''} ${data['last_name'] ?? ''}', // ✅ Concatène le prénom et le nom
+      name: '${data['first_name'] ?? ''} ${data['last_name'] ?? ''}',
       email: data['email'] ?? 'Non disponible',
-      avatar: data['avatar'] ?? '', // ✅ Ajoute l'avatar
+      avatar: data['avatar'] ?? '',
     );
   }
 }
