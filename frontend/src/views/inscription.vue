@@ -1,133 +1,141 @@
 <template>
-  <div class="form-container">
-    <n-card title="Inscription">
-      <n-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          label-placement="top"
-          size="large"
-      >
-        <n-form-item label="Nom" path="name">
-          <n-input v-model:value="form.name" placeholder="Entrez votre nom" />
+  <div class="formulaire">
+    <n-card title="Formulaire d'inscription">
+      <n-form @submit.prevent="inscription" :label-width="100">
+        <n-form-item label="Pseudo" :error="errors.pseudos">
+          <n-input v-model="credentials.pseudos" @input="validatePseudos" placeholder="Entrez votre pseudo" />
         </n-form-item>
 
-        <n-form-item label="Email" path="email">
-          <n-input
-              v-model:value="form.email"
-              type="email"
-              placeholder="Entrez votre email"
-          />
+        <n-form-item label="Email" :error="errors.email">
+          <n-input v-model="credentials.email" @input="validateEmail" placeholder="Entrez votre email" />
         </n-form-item>
 
-        <n-form-item label="Mot de passe" path="password">
-          <n-input
-              v-model:value="form.password"
-              type="password"
-              placeholder="Entrez un mot de passe"
-              show-password-on="mousedown"
-          />
-        </n-form-item>
-
-        <n-form-item label="Confirmer le mot de passe" path="confirmPassword">
-          <n-input
-              v-model:value="form.confirmPassword"
-              type="password"
-              placeholder="Confirmez votre mot de passe"
-              show-password-on="mousedown"
-          />
+        <n-form-item label="Mot de passe" :error="errors.password">
+          <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" />
         </n-form-item>
 
         <n-form-item>
-          <n-button type="primary" @click="handleSubmit">S'inscrire</n-button>
+          <n-button type="primary" @click="inscription">S'inscrire</n-button>
         </n-form-item>
       </n-form>
     </n-card>
   </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
-import { useMessage } from "naive-ui";
+<script>
+import { NCard, NForm, NFormItem, NInput, NButton } from 'naive-ui';
 
-const message = useMessage();
-const formRef = ref(null);
-
-const form = ref({
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-});
-
-const rules = {
-  email: [
-    {
-      required: true,
-      message: "L'email est obligatoire",
-      trigger: "blur",
-    },
-    {
-      type: "email",
-      message: "Veuillez entrer un email valide",
-      trigger: "blur",
-    },
-  ],
-  password: [
-    {
-      required: true,
-      message: "Le mot de passe est obligatoire",
-      trigger: "blur",
-    },
-    {
-      min: 6,
-      message: "Le mot de passe doit avoir au moins 6 caractères",
-      trigger: "blur",
-    },
-  ],
-  confirmPassword: [
-    {
-      required: true,
-      message: "Veuillez confirmer votre mot de passe",
-      trigger: "blur",
-    },
-    {
-      validator: (rule, value) => {
-        return value === form.value.password;
+export default {
+  name: 'Inscription',
+  components: {
+    NCard,
+    NForm,
+    NFormItem,
+    NInput,
+    NButton,
+  },
+  data() {
+    return {
+      credentials: {
+        pseudos: '',
+        email: '',
+        password: '',
       },
-      message: "Les mots de passe ne correspondent pas",
-      trigger: "blur",
-    },
-  ],
-};
-
-const handleSubmit = () => {
-  formRef.value?.validate((errors) => {
-    if (!errors) {
-      message.success("Inscription réussie !");
-    } else {
-      message.error("Veuillez corriger les erreurs.");
+      errors: {
+        pseudo: '',
+        email: '',
+        password: '',
+      },
     }
-  });
-};
+  },
+  methods: {
+    validatePseudos() {
+      if (!this.credentials.pseudos) {
+        this.errors.pseudos = 'Veuillez saisir un pseudo';
+      } else if (this.credentials.pseudos.length < 3) {
+        this.errors.pseudos = 'Le pseudo doit avoir au moins 3 caractères';
+      } else {
+        this.errors.pseudos = '';
+      }
+    },
+    validateEmail() {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!this.credentials.email) {
+        this.errors.email = 'Veuillez saisir votre email';
+      } else if (!emailPattern.test(this.credentials.email)) {
+        this.errors.email = 'Email invalide';
+      } else {
+        this.errors.email = '';
+      }
+    },
+    validatePassword() {
+      const password = this.credentials.password;
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasNumber = /\d/.test(password);
+
+      if (!password) {
+        this.errors.password = 'Le mot de passe est requis';
+      } else if (password.length < 6) {
+        this.errors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+      } else if (!hasUpperCase) {
+        this.errors.password = 'Le mot de passe doit contenir au moins une majuscule';
+      } else if (!hasNumber) {
+        this.errors.password = 'Le mot de passe doit contenir au moins un chiffre';
+      } else {
+        this.errors.password = '';
+      }
+    },
+    inscription() {
+      this.errors = {
+        pseudo: '',
+        email: '',
+        password: '',
+      };
+
+      this.validatePseudos();
+      this.validateEmail();
+      this.validatePassword();
+
+      console.log('Errors:', this.errors); // Ajoute un log ici pour vérifier les erreurs après validation
+
+      if (this.errors.pseudos || this.errors.email || this.errors.password) {
+        console.log('Formulaire invalide');
+        return false;
+      } else {
+        console.log('Inscription réussie:', this.credentials);
+      }
+    }
+  }
+}
+
 </script>
 
 <style scoped>
-.form-container {
-  max-width: 400px;
-  margin: 50px auto;
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: auto auto;
+  height: 80vh;
+  width: 50vw;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .n-card {
-  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-n-form-item {
-  margin-bottom: 16px;
+.n-form-item {
+  margin-bottom: 15px;
+}
+
+.n-input {
+  width: 100%;
 }
 
 .n-button {
-  display: block;
   width: 100%;
 }
 </style>
