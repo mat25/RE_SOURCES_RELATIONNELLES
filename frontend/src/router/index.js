@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import accueil from "@/views/accueil.vue";
 import profil from "@/views/profil.vue";
 import inscription from "@/views/inscription.vue";
+import connexion from "@/views/connexion.vue";
 
 
 const router = createRouter({
@@ -17,6 +18,12 @@ const router = createRouter({
       path: '/inscription',
       name: 'inscription',
       component: inscription,
+    },
+
+    {
+      path: '/connexion',
+      name: 'connexion',
+      component: connexion,
     },
 
     {
