@@ -3,6 +3,7 @@ import accueil from "@/views/accueil.vue";
 import profil from "@/views/profil.vue";
 import inscription from "@/views/inscription.vue";
 import connexion from "@/views/connexion.vue";
+import resources from "@/views/resources.vue";
 
 
 const router = createRouter({
@@ -24,6 +25,12 @@ const router = createRouter({
       path: '/connexion',
       name: 'connexion',
       component: connexion,
+    },
+
+    {
+      path: '/resources',
+      name: 'resources',
+      component: resources,
     },
 
     {
