@@ -27,6 +27,9 @@
 
     <n-modal v-model:show="showModal" preset="card" title="Modifier le mot de passe">
       <n-form @submit.prevent="changePassword">
+        <n-form-item label="Votre ancien mot de passe">
+          <n-input type="password" v-model="lastPassword" placeholder="Entrez votre ancien mot de passe" />
+        </n-form-item>
         <n-form-item label="Nouveau mot de passe">
           <n-input type="password" v-model="newPassword" placeholder="Entrez un nouveau mot de passe" />
         </n-form-item>
@@ -49,6 +52,7 @@ export default {
   data() {
     return {
       showModal: false,
+      lastPassword: '',
       newPassword: '',
       confirmPassword: '',
       passwordError: ''
