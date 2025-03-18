@@ -12,7 +12,7 @@
           <p><strong>Nom :</strong> Doe</p>
           <p><strong>Prénom :</strong> John</p>
           <p><strong>Email :</strong> john.doe@example.com</p>
-          <p><strong>Profession :</strong> Développeur Web</p>
+          <p><strong>Date inscrition :</strong> 11/04/2025</p>
           <p><strong>Mot de passe :</strong> ********
             <n-button text @click="showPasswordModal">Modifier</n-button>
           </p>
