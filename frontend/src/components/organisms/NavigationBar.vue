@@ -10,7 +10,6 @@
       <router-link to="/" class="nav-link">    <n-button strong secondary round>Accueil</n-button></router-link>
       <router-link to="/#" class="nav-link">    <n-button strong secondary round>Ressources</n-button></router-link>
       <router-link to="/#" class="nav-link">    <n-button strong secondary round>Progression</n-button></router-link>
-      <router-link to="/#" class="nav-link">    <n-button strong secondary round>Statistique</n-button></router-link>
     </ul>
 
   </nav>
