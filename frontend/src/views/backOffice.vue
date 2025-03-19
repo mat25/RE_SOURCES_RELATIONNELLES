@@ -44,6 +44,8 @@
                 </n-form>
               <n-button @click="showAddUserForm">Ajouter un Utilisateur</n-button>
               <n-button @click="showAddAdminForm">Ajouter un Admin</n-button>
+              <n-button @click="showAddHelperForm">Ajouter un moderateurs</n-button>
+              <n-button @click="showAddSuperAdminForm">Ajouter un super Admin</n-button>
             </n-tab-pane>
           </n-tabs>
         </n-card>
@@ -144,6 +146,8 @@
       toggleUserStatus() {},
   
       showAddAdminForm() {},
+      showAddHelperForm() {},
+      showAddSuperAdminForm() {},
       cancelAdminForm() {},
       submitAdminForm() {},
     },
