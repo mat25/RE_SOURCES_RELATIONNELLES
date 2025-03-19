@@ -4,6 +4,9 @@ import profil from "@/views/profil.vue";
 import inscription from "@/views/inscription.vue";
 import connexion from "@/views/connexion.vue";
 import resources from "@/views/resources.vue";
+import progression from "@/views/progression.vue";
+import backOffice from "@/views/backOffice.vue";
+import detailResources from "@/views/detailResources.vue";
 
 
 const router = createRouter({
@@ -32,6 +35,26 @@ const router = createRouter({
       name: 'resources',
       component: resources,
     },
+
+    {
+      path: '/progression',
+      name: 'progression',
+      component: progression,
+    },
+
+    {
+      path: '/backOffice',
+      name: 'Bo',
+      component: backOffice,
+    },
+
+
+    {
+      path: '/detailRessource',
+      name: 'detailRessource',
+      component: detailResources
+    },
+
 
     {
       path: '/',

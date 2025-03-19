@@ -42,10 +42,8 @@
                 @submit.prevent="submitAdminForm"
               >
                 </n-form>
-              <n-button @click="createUser">Ajouter un Utilisateur</n-button>
-              <n-button @click="createHelper">Ajouter un Moderateur</n-button>
-              <n-button @click="createAdmin">Ajouter un Admin</n-button>
-              <n-button @click="createSuperAdmin">Ajouter un SuperAdmin</n-button>
+              <n-button @click="showAddUserForm">Ajouter un Utilisateur</n-button>
+              <n-button @click="showAddAdminForm">Ajouter un Admin</n-button>
             </n-tab-pane>
           </n-tabs>
         </n-card>
@@ -74,8 +72,8 @@
     NIcon,
     NPopconfirm,
     NPagination,
-    create,
-  } from 'naive-ui';  
+  } from 'naive-ui';
+  
   export default {
     components: {
       NLayout,
@@ -100,7 +98,6 @@
     },
     data() {
       return {
-        // Données et méthodes pour Ressources (comme dans le code précédent)
         resourceColumns: [],
         resourceData: [],
         categoryOptions: [],
@@ -109,13 +106,11 @@
         currentPageResources: 1,
         pageCountResources: 10,
   
-        // Données et méthodes pour Catégories (comme dans le code précédent)
         categoryColumns: [],
         categoryData: [],
         showCategoryForm: false,
         categoryForm: {},
   
-        // Données et méthodes pour Utilisateurs (comme dans le code précédent)
         userColumns: [],
         userData: [],
         roleOptions: [],
@@ -126,56 +121,31 @@
       };
     },
     methods: {
-      filterRessources() {},
-      addResource() {},
+      showAddResourceForm() {},
       editResource() {},
-      banResources() {},
+      cancelResourceForm() {},
+      submitResourceForm() {},
       deleteResource() {},
-      validResources() {},
-
+      toggleResourceStatus() {},
+      handleImageUpload() {},
+      handlePageChangeResources() {},
+  
+      showAddCategoryForm() {},
       editCategory() {},
+      cancelCategoryForm() {},
+      submitCategoryForm() {},
       deleteCategory() {},
   
-      banUser() {},
+      showAddUserForm() {},
+      editUser() {},
+      cancelUserForm() {},
+      submitUserForm() {},
       deleteUser() {},
-      validateResource() {},
-        
+      toggleUserStatus() {},
   
-      createUser() {},
-      createAdmin() {},
-      createSuperAdmin() {},
-      createHelper() {},
-
-      showStatistiqueOfResource() {},
-      filterStatistiqueOfResource() {},
-
-
+      showAddAdminForm() {},
+      cancelAdminForm() {},
+      submitAdminForm() {},
     },
   };
   </script>
-
-// Partie ressources :
-
-    // filtrer les ressources en BO
-    // ajouter ou editer une ressources existante
-    // supprimer ou suspendre une ressources
-    // supprimer une categorie de ressources 
-
-
-    
-// Partie Users :
-
-    // Valider ou non les ressources en attentes 
-    // suspendre le compte d'un utilisateur
-    // bannir le compte d'un utilisateur
-
-
-// Partie admin :
-
-    // creer un compte modo, admin, super admin
-
-
-// statistique :
-
-    // afficher les statistique d'une ressources : nb exploitation, nb consultation, nb favoris, qui la creer
-    // permettre les filtre sur : periodes, categorie ...
