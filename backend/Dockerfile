@@ -1,5 +1,5 @@
 # Utiliser une image Java officielle comme base
-FROM openjdk:23-jdk-slim as builder
+FROM openjdk:23-jdk-slim AS builder
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app

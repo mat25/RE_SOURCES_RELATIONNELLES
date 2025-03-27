@@ -14,7 +14,7 @@ public class DatabaseConfig {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setUrl("jdbc:mysql://localhost:3306/db_re_sources_relationnelles");
         dataSource.setUsername("root");
-        dataSource.setPassword("");
+        dataSource.setPassword("password");
         return dataSource;
     }
 }
