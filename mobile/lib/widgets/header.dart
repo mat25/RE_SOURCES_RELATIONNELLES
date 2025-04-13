@@ -10,14 +10,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(title, style: const TextStyle(fontSize: 20)),
       centerTitle: true,
-      backgroundColor: Colors.blue,
       elevation: 4,
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-      ),
+      shadowColor: Colors.black,
     );
   }
 

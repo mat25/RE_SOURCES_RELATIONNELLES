@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:provider/provider.dart';
+import '../providers/session_provider.dart';
 import '../repositories/ressource_repository.dart';
 import '../models/ressource.dart';
 import '../core/api/api_client.dart';
-import '../widgets/header.dart';
+import '../widgets/login_form.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class RessourcesPage extends StatefulWidget {
+  const RessourcesPage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<RessourcesPage> createState() => _RessourcesPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _RessourcesPageState extends State<RessourcesPage> {
   final ressourceRepository = RessourceRepository(ApiClient());
   late Future<List<Ressource>> ressources;
 
@@ -24,7 +25,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final session = Provider.of<SessionProvider>(context);
+
+    return session.isLoggedIn
+        ? Scaffold(
       body: FutureBuilder<List<Ressource>>(
         future: ressources,
         builder: (context, snapshot) {
@@ -33,21 +37,24 @@ class _HomePageState extends State<HomePage> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CarouselSlider(
-                  options: CarouselOptions(
-                    height: 300,
-                    autoPlay: true,
-                    enlargeCenterPage: true,
-                    enableInfiniteScroll: true,
-                    autoPlayInterval: const Duration(seconds: 3),
-                    viewportFraction: 0.8,
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8.0,
+                    mainAxisSpacing: 8.0,
+                    childAspectRatio: 0.7,
                   ),
-                  items: snapshot.data!.map((ressource) {
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final ressource = snapshot.data![index];
                     return Card(
-                      color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
+                      color: Color(int.parse(
+                          ressource.color.replaceFirst('#', '0xff'))),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -67,26 +74,29 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 8),
                             Text(
                               'Année : ${ressource.year}',
-                              style: const TextStyle(fontSize: 18, color: Colors.white70),
+                              style: const TextStyle(
+                                  fontSize: 18, color: Colors.white70),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Pantone : ${ressource.pantoneValue}',
-                              style: const TextStyle(fontSize: 16, color: Colors.white60),
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.white60),
                             ),
                           ],
                         ),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
-              ],
+              ),
             );
           } else {
             return const Center(child: Text('Aucune donnée disponible'));
           }
         },
       ),
-    );
+    )
+        : const LoginForm();
   }
 }
