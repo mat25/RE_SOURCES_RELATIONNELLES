@@ -1,41 +1,28 @@
 package com.ReSourcesRelationnelles.prod.entity;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nom;
-    private String prenom;
-    private String pseudo;
+    private String username;
     private String email;
     private String password;
-    private Boolean statut;
-    private LocalDateTime dateInscription;
 
-    // Constructeurs
-    public User() {
-    }
+    // Constructeur par défaut (requis par JPA)
+    public User() {}
 
-    public User(String nom,String prenom,String pseudo,String email,String password,Boolean statut,LocalDateTime dateInscription) {
-        this.nom = nom;
-        this.prenom = prenom;
-        this.pseudo = pseudo;
+    // Constructeur avec paramètres
+    public User(String username, String email, String password) {
+        this.username = username;
         this.email = email;
         this.password = password;
-        this.statut = statut;
-        this.dateInscription = dateInscription;
     }
 
-    // Get et set
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -44,30 +31,14 @@ public class User {
         this.id = id;
     }
 
-    public String getNom() {
-        return nom;
+    public String getUsername() {
+        return username;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getPrenom() {
-        return prenom;
-    }
-
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    }
-    
-    public String getPseudo() {
-        return pseudo;
-    }
-
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
-    }
-    
     public String getEmail() {
         return email;
     }
@@ -76,23 +47,11 @@ public class User {
         this.email = email;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Boolean getStatut() {
-        return statut;
-    }
-
-    public void setStatut(Boolean statut) {
-        this.statut = statut;
-    }
-
-    public LocalDateTime getDateInscription() {
-        return dateInscription;
-    }
-
-    public void setDateInscription(LocalDateTime dateInscription) {
-        this.dateInscription = dateInscription;
     }
 }

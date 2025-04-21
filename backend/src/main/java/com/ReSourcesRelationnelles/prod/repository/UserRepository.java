@@ -11,4 +11,6 @@ import com.ReSourcesRelationnelles.prod.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

@@ -17,4 +17,14 @@ public class DatabaseConfig {
         dataSource.setPassword("password");
         return dataSource;
     }
+
+//    @Bean
+//    public DataSource dataSource() {
+//        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+//        dataSource.setUrl("jdbc:mysql://localhost:3306/mondb");
+//        dataSource.setUsername("user");
+//        dataSource.setPassword("password");
+//        return dataSource;
+//    }
+
 }
