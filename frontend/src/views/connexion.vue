@@ -46,9 +46,9 @@ export default {
   methods: {
     login() {
       this.errors = {
-        pseudo: '',
-        email: '',
-        password: '',
+        pseudo: 'veuillez saisir un pseudos',
+        email: 'veuillez saisir un mail',
+        password: 'veuillez saisir un mot de passe valide',
       };
 
       // a faire quand le back sera fais
