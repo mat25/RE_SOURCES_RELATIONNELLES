@@ -55,7 +55,7 @@ export default {
       } else if (this.credentials.pseudos.length < 3) {
         this.errors.pseudos = 'Le pseudo doit avoir au moins 3 caractères';
       } else {
-        this.errors.pseudos = '';
+        this.errors.pseudos = 'Veuillez saisir un pseudos';
       }
     },
     validateEmail() {
