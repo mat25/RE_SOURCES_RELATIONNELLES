@@ -12,19 +12,13 @@ public class DatabaseConfig {
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setUrl("jdbc:mysql://localhost:3306/db_re_sources_relationnelles");
+        // (pour le dev)
+//        dataSource.setUrl("jdbc:mysql://localhost:3306/db_re_sources_relationnelles");
+        // (pour le front)
+        dataSource.setUrl("jdbc:mysql://database:3306/db_re_sources_relationnelles");
         dataSource.setUsername("root");
         dataSource.setPassword("password");
         return dataSource;
     }
-
-//    @Bean
-//    public DataSource dataSource() {
-//        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-//        dataSource.setUrl("jdbc:mysql://localhost:3306/mondb");
-//        dataSource.setUsername("user");
-//        dataSource.setPassword("password");
-//        return dataSource;
-//    }
 
 }

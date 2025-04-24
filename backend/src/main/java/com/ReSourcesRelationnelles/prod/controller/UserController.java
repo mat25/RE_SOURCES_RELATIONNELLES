@@ -2,7 +2,7 @@ package com.ReSourcesRelationnelles.prod.controller;
 
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +25,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -35,8 +35,12 @@ public class UserController {
         return userRepository.findByEmail("test@email.fr");
     }
 
-    @PostMapping
+    @PostMapping("/createUser")
     public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
+        System.out.println("Username: " + request.getUsername());
+        System.out.println("Email: " + request.getEmail());
+        System.out.println("Password: " + request.getPassword());
+
         User createdUser = userService.createUser(request);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }

@@ -1,10 +1,11 @@
-# Utiliser une image Java officielle comme base
-FROM openjdk:23-jdk-slim AS builder
+# Étape 1 : base Java (Java 23 slim)
+FROM openjdk:23-jdk-slim
 
+# Crée un dossier de travail dans le conteneur
 WORKDIR /app
 
-# Copier le fichier JAR généré par Maven dans l'image Docker
+# Copie du fichier JAR (assure-toi qu’il existe bien à ce chemin)
 COPY ./target/prod-0.0.1-SNAPSHOT.jar app.jar
 
-# Lancer l'application Spring Boot avec la commande suivante
-ENTRYPOINT ["java", "-jar", " .jar"]
+# Démarrage de l'application
+ENTRYPOINT ["java", "-jar", "app.jar"]
