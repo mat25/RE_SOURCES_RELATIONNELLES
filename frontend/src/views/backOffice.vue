@@ -3,6 +3,7 @@
     <div class="section-container">
       <div class="section-box">
         <h2 class="section-title">Utilisateurs</h2>
+        <button class="create-button" @click="openCreateUserModal">Créer un utilisateur</button>
         <div class="search-filter">
           <input type="text" v-model="searchUsers" placeholder="Rechercher des utilisateurs">
           <select v-model="sortUsersBy">
@@ -35,6 +36,7 @@
 
       <div class="section-box">
         <h2 class="section-title">Catégories</h2>
+        <button class="create-button" @click="openCreateCategoryModal">Créer une catégorie</button>
         <div class="search-filter">
           <input type="text" v-model="searchCategories" placeholder="Rechercher des catégories">
           <select v-model="sortCategoriesBy">
@@ -60,6 +62,7 @@
 
       <div class="section-box">
         <h2 class="section-title">Ressources</h2>
+        <button class="create-button" @click="openCreateResourceModal">Créer une ressource</button>
         <div class="search-filter">
           <input type="text" v-model="searchResources" placeholder="Rechercher des ressources">
           <select v-model="sortResourcesBy">
@@ -74,6 +77,7 @@
               <p><strong>{{ resource.name }}</strong> ({{ resource.type }})</p>
               <p>Créé le: {{ resource.createdAt }}</p>
               <button class="action-button" @click="deleteResource(resource)">Supprimer</button>
+              <button v-if="resource.needsValidation" class="validate-button" @click="validateResource(resource)">Valider</button>
             </div>
           </div>
         </div>
@@ -81,6 +85,43 @@
           <button class="pagination-button" @click="changePage('resources', 'prev')" :disabled="currentResourcePage === 1">Précédent</button>
           <span>Page {{ currentResourcePage }} sur {{ totalResourcePages }}</span>
           <button class="pagination-button" @click="changePage('resources', 'next')" :disabled="currentResourcePage === totalResourcePages">Suivant</button>
+        </div>
+      </div>
+
+      <div v-if="showCreateResourceModal" class="modal">
+        <div class="modal-content">
+          <span class="close-button" @click="closeCreateResourceModal">&times;</span>
+          <h3>Créer une ressource</h3>
+          <label for="new-resource-title">Titre*:</label>
+          <input type="text" id="new-resource-title" v-model="newResource.title" required>
+
+          <label for="new-resource-content">Contenu*:</label>
+          <textarea id="new-resource-content" v-model="newResource.content" required></textarea>
+
+          <label for="new-resource-image">Image*:</label>
+          <input type="file" id="new-resource-image" @change="handleImageUpload" accept="image/*" required>
+          <div v-if="newResource.imagePreview" class="image-preview">
+            <img :src="newResource.imagePreview" alt="Aperçu de l'image" style="max-width: 100px; max-height: 100px;">
+          </div>
+
+          <label for="new-resource-category">Catégorie*:</label>
+          <select id="new-resource-category" v-model="newResource.category" required>
+            <option v-for="cat in categories" :key="cat.name" :value="cat.name">{{ cat.name }}</option>
+            <option v-if="!categories.length" disabled>Aucune catégorie disponible</option>
+          </select>
+
+          <label>Visibilité:</label>
+          <div class="radio-group">
+            <input type="radio" id="public-resource" value="public" v-model="newResource.isPrivate">
+            <label for="public-resource">Publique</label>
+            <input type="radio" id="private-resource" value="private" v-model="newResource.isPrivate">
+            <label for="private-resource">Privée</label>
+          </div>
+
+          <label for="new-resource-video-link">Lien vidéo (facultatif):</label>
+          <input type="url" id="new-resource-video-link" v-model="newResource.videoLink">
+
+          <button class="submit-button" @click="createResource">Créer</button>
         </div>
       </div>
     </div>
@@ -103,6 +144,36 @@
             <v-chart :option="chartOption" style="height: 300px; width: 100%;" />
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="showCreateUserModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" @click="closeCreateUserModal">&times;</span>
+        <h3>Créer un utilisateur</h3>
+        <label for="new-user-name">Nom:</label>
+        <input type="text" id="new-user-name" v-model="newUser.name">
+        <label for="new-user-email">Email:</label>
+        <input type="email" id="new-user-email" v-model="newUser.email">
+        <label for="new-user-role">Rôle:</label>
+        <select id="new-user-role" v-model="newUser.role">
+          <option value="Modérateur">Modérateur</option>
+          <option value="Admin">Admin</option>
+          <option value="Super Admin">Super Admin</option>
+        </select>
+        <button class="submit-button" @click="createUser">Créer</button>
+      </div>
+    </div>
+
+    <div v-if="showCreateCategoryModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" @click="closeCreateCategoryModal">&times;</span>
+        <h3>Créer une catégorie</h3>
+        <label for="new-category-name">Nom:</label>
+        <input type="text" id="new-category-name" v-model="newCategory.name">
+        <label for="new-category-description">Description:</label>
+        <textarea id="new-category-description" v-model="newCategory.description"></textarea>
+        <button class="submit-button" @click="createCategory">Créer</button>
       </div>
     </div>
   </div>
@@ -157,7 +228,7 @@ export default defineComponent({
       ],
       resources: [
         { name: "Document A", type: "PDF", createdAt: "2025-04-22" },
-        { name: "Document B", type: "Word", createdAt: "2025-04-21" },
+        { name: "Document B", type: "Word", createdAt: "2025-04-21", needsValidation: true }, // Exemple de ressource à valider
         { name: "Document C", type: "Excel", createdAt: "2025-04-20" },
         { name: "Document D", type: "PowerPoint", createdAt: "2025-04-19" }
       ],
@@ -218,6 +289,20 @@ export default defineComponent({
       sortCategoriesBy: 'name',
       searchResources: '',
       sortResourcesBy: 'name',
+      showCreateUserModal: false,
+      newUser: { name: '', email: '', role: 'Modérateur' },
+      showCreateCategoryModal: false,
+      newCategory: { name: '', description: '' },
+      showCreateResourceModal: false,
+      newResource: {
+        title: '',
+        content: '',
+        image: null,
+        imagePreview: null,
+        category: '',
+        isPrivate: 'public', // Par défaut publique
+        videoLink: ''
+      }
     };
   },
   computed: {
@@ -267,7 +352,6 @@ export default defineComponent({
         if (this.sortCategoriesBy === 'description') return a.description.localeCompare(b.description);
         return 0;
       });
-      return sortedCategories;
     },
     totalResourcePages() {
       return Math.ceil(this.filteredResources.length / this.resourcesPerPage);
@@ -291,7 +375,6 @@ export default defineComponent({
         if (this.sortResourcesBy === 'createdAt') return new Date(a.createdAt) - new Date(b.createdAt);
         return 0;
       });
-      return sortedResources;
     },
     userRolesData() {
       const roleCounts = { Admin: 0, Modérateur: 0, "Super Admin": 0 };
@@ -332,6 +415,83 @@ export default defineComponent({
     }
   },
   methods: {
+    openCreateUserModal() {
+      this.showCreateUserModal = true;
+      this.newUser = { name: '', email: '', role: 'Modérateur' }; // Réinitialise le formulaire
+    },
+    closeCreateUserModal() {
+      this.showCreateUserModal = false;
+    },
+    createUser() {
+      if (this.newUser.name && this.newUser.email && this.newUser.role) {
+        this.users.push({ ...this.newUser });
+        this.closeCreateUserModal();
+      } else {
+        alert('Veuillez remplir tous les champs pour créer un utilisateur.');
+      }
+    },
+    openCreateCategoryModal() {
+      this.showCreateCategoryModal = true;
+      this.newCategory = { name: '', description: '' }; // Réinitialise le formulaire
+    },
+    closeCreateCategoryModal() {
+      this.showCreateCategoryModal = false;
+    },
+    createCategory() {
+      if (this.newCategory.name && this.newCategory.description) {
+        this.categories.push({ ...this.newCategory });
+        this.closeCreateCategoryModal();
+      } else {
+        alert('Veuillez remplir tous les champs pour créer une catégorie.');
+      }
+    },
+    openCreateResourceModal() {
+      this.showCreateResourceModal = true;
+      this.newResource = {
+        title: '',
+        content: '',
+        image: null,
+        imagePreview: null,
+        category: '',
+        isPrivate: 'public',
+        videoLink: ''
+      };
+    },
+    closeCreateResourceModal() {
+      this.showCreateResourceModal = false;
+    },
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.newResource.image = file;
+        this.newResource.imagePreview = URL.createObjectURL(file);
+      } else {
+        this.newResource.image = null;
+        this.newResource.imagePreview = null;
+      }
+    },
+    createResource() {
+      if (this.newResource.title && this.newResource.content && this.newResource.image && this.newResource.category) {
+        const newResource = {
+          name: this.newResource.title, // Utiliser le titre comme nom pour l'affichage dans la liste
+          type: this.newResource.image ? this.newResource.image.type : 'unknown', // Simuler le type
+          createdAt: new Date().toLocaleDateString(),
+          isPrivate: this.newResource.isPrivate === 'private',
+          videoLink: this.newResource.videoLink,
+          needsValidation: true // Simuler une ressource créée par un utilisateur nécessitant validation
+        };
+        this.resources.push(newResource);
+        this.closeCreateResourceModal();
+        // Ici, dans une application réelle, tu devrais envoyer les données à ton backend.
+      } else {
+        alert('Veuillez remplir tous les champs obligatoires.');
+      }
+    },
+    validateResource(resource) {
+      resource.needsValidation = false;
+      alert(`La ressource "${resource.name}" a été validée et est maintenant publique.`);
+      // Ici, tu mettrais à jour l'état de la ressource dans ta base de données.
+    },
     changePage(section, direction) {
       if (section === 'users') {
         this.currentUserPage = direction === 'next' ? this.currentUserPage + 1 : this.currentUserPage - 1;
@@ -353,12 +513,11 @@ export default defineComponent({
   }
 });
 </script>
-
 <style scoped>
 .back-office {
   font-family: Arial, sans-serif;
   margin: 20px;
-  color: #333; /* Couleur de police par défaut */
+  color: #333;
 }
 
 .section-title {
@@ -382,7 +541,7 @@ export default defineComponent({
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 15px;
   width: calc(50% - 10px);
-  min-width: 350px; /* Augmentation de la largeur minimale pour accueillir les filtres */
+  min-width: 350px;
 }
 
 .stats-container {
@@ -395,13 +554,13 @@ export default defineComponent({
 
 .stats-row {
   display: flex;
-  gap: 20px; /* Espacement entre les deux graphiques */
-  flex-wrap: wrap; /* Permet aux graphiques de passer à la ligne sur les écrans plus petits */
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .stats-chart-container {
-  flex: 1; /* Chaque conteneur de graphique prend une part égale de l'espace */
-  min-width: 300px; /* Largeur minimale pour chaque graphique */
+  flex: 1;
+  min-width: 300px;
 }
 
 .chart-controls {
@@ -432,9 +591,9 @@ export default defineComponent({
 }
 
 .scrollable {
-  max-height: 300px; /* Hauteur maximale avant le défilement */
-  overflow-y: auto; /* Ajoute un scroll vertical si nécessaire */
-  padding-right: 5px; /* Pour éviter que le contenu ne soit caché par la barre de défilement */
+  max-height: 3;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .item {
@@ -450,7 +609,7 @@ export default defineComponent({
 .resource-card p {
   font-size: 14px;
   margin-bottom: 5px;
-  color: #333; /* Couleur de police du texte des cartes */
+  color: #333;
 }
 
 .action-button {
@@ -506,4 +665,139 @@ export default defineComponent({
   border-radius: 4px;
   font-size: 14px;
 }
+
+.create-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.create-button:hover {
+  background-color: #45a049;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 80%;
+  max-width: 500px;
+  position: relative;
+}
+
+.close-button {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="email"],
+.modal-content select,
+.modal-content textarea,
+.modal-content input[type="file"],
+.modal-content input[type="url"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.modal-content textarea {
+  height: 80px;
+}
+
+.modal-content .radio-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.modal-content .radio-group label {
+  font-weight: normal;
+}
+
+.modal-content .image-preview {
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.modal-content .image-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.submit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #0056b3;
+}
+
+.validate-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.validate-button:hover {
+  background-color: #218838;
+}
+
 </style>
