@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/login_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 import '../widgets/login_form.dart';
@@ -39,7 +40,7 @@ class SettingsPage extends StatelessWidget {
                     ],
                   ),
           )
-          : const LoginForm(),
+          : const LoginPage(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/login_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 import '../widgets/login_form.dart';
@@ -12,6 +13,6 @@ class FavoritesPage extends StatelessWidget {
 
     return session.isLoggedIn
         ? const Center(child: Text('Page des favoris'))
-        : const LoginForm();
+        : const LoginPage();
   }
 }

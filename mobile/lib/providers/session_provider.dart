@@ -34,4 +34,12 @@ class SessionProvider with ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  int _currentIndex = 2;
+  int get currentIndex => _currentIndex;
+
+  void goToTab(int index) {
+    _currentIndex = index;
+    notifyListeners();
+  }
 }
