@@ -10,6 +10,7 @@
             <option value="name">Nom</option>
             <option value="role">Rôle</option>
             <option value="email">Email</option>
+            <option value="status">Statut</option>
           </select>
           <select v-model="filterUsersByRole">
             <option value="">Tous les rôles</option>
@@ -17,13 +18,24 @@
             <option value="Modérateur">Modérateur</option>
             <option value="Super Admin">Super Admin</option>
           </select>
+          <select v-model="filterUsersByStatus">
+            <option value="">Tous les statuts</option>
+            <option value="Actif">Actif</option>
+            <option value="Suspendu">Suspendu</option>
+            <option value="Banni">Banni</option>
+          </select>
         </div>
         <div class="item-list scrollable">
           <div v-for="(user, index) in filteredAndSortedUsers" :key="index" class="item">
             <div class="user-card">
               <p class="user-name"><strong>{{ user.name }}</strong> ({{ user.role }})</p>
               <p>Email: {{ user.email }}</p>
-              <button class="action-button" @click="deleteUser(user)">Supprimer</button>
+              <p>Statut: <span :class="userStatusClass(user.status)">{{ user.status }}</span> <span v-if="user.banDuration"> (pour {{ formatBanDuration(user.banDuration) }})</span></p>
+              <div class="user-actions">
+                <button v-if="user.status === 'Actif'" class="suspend-button" @click="openSuspendModal(user)">Suspendre</button>
+                <button v-if="user.status === 'Actif'" class="ban-button" @click="openBanModal(user)">Bannir</button>
+                <button v-if="user.status !== 'Actif'" class="activate-button" @click="activateUser(user)">Activer</button>
+              </div>
             </div>
           </div>
         </div>
@@ -31,6 +43,28 @@
           <button class="pagination-button" @click="changePage('users', 'prev')" :disabled="currentUserPage === 1">Précédent</button>
           <span>Page {{ currentUserPage }} sur {{ totalUserPages }}</span>
           <button class="pagination-button" @click="changePage('users', 'next')" :disabled="currentUserPage === totalUserPages">Suivant</button>
+        </div>
+      </div>
+
+      <div v-if="showSuspendModal" class="modal">
+        <div class="modal-content">
+          <span class="close-button" @click="closeSuspendModal">&times;</span>
+          <h3>Suspendre l'utilisateur</h3>
+          <p>Êtes-vous sûr de vouloir suspendre l'utilisateur <strong>{{ selectedUser ? selectedUser.name : '' }}</strong> ?</p>
+          <button class="submit-button" @click="suspendUser">Suspendre</button>
+          <button class="cancel-button" @click="closeSuspendModal">Annuler</button>
+        </div>
+      </div>
+
+      <div v-if="showBanModal" class="modal">
+        <div class="modal-content">
+          <span class="close-button" @click="closeBanModal">&times;</span>
+          <h3>Bannir l'utilisateur</h3>
+          <p>Êtes-vous sûr de vouloir bannir l'utilisateur <strong>{{ selectedUser ? selectedUser.name : '' }}</strong> ?</p>
+          <label for="ban-duration">Durée du bannissement (en secondes):</label>
+          <input type="number" id="ban-duration" v-model="banDuration" min="1" required>
+          <button class="submit-button" @click="banUser">Bannir</button>
+          <button class="cancel-button" @click="closeBanModal">Annuler</button>
         </div>
       </div>
 
@@ -214,11 +248,11 @@ export default defineComponent({
   data() {
     return {
       users: [
-        { name: "Alice", role: "Admin", email: "alice@example.com" },
-        { name: "Bob", role: "Modérateur", email: "bob@example.com" },
-        { name: "Charlie", role: "Super Admin", email: "charlie@example.com" },
-        { name: "David", role: "Admin", email: "david@example.com" },
-        { name: "Eve", role: "Modérateur", email: "eve@example.com" }
+        { name: "Alice", role: "Admin", email: "alice@example.com", status: 'Actif' },
+        { name: "Bob", role: "Modérateur", email: "bob@example.com", status: 'Actif' },
+        { name: "Charlie", role: "Super Admin", email: "charlie@example.com", status: 'Actif' },
+        { name: "David", role: "Admin", email: "david@example.com", status: 'Suspendu' },
+        { name: "Eve", role: "Modérateur", email: "eve@example.com", status: 'Banni', banDuration: 3600 }
       ],
       categories: [
         { name: "Technologie", description: "Catégorie sur les dernières technologies" },
@@ -285,6 +319,7 @@ export default defineComponent({
       searchUsers: '',
       sortUsersBy: 'name',
       filterUsersByRole: '',
+      filterUsersByStatus: '',
       searchCategories: '',
       sortCategoriesBy: 'name',
       searchResources: '',
@@ -302,7 +337,11 @@ export default defineComponent({
         category: '',
         isPrivate: 'public', // Par défaut publique
         videoLink: ''
-      }
+      },
+      showSuspendModal: false,
+      showBanModal: false,
+      selectedUser: null,
+      banDuration: null
     };
   },
   computed: {
@@ -320,7 +359,8 @@ export default defineComponent({
             user.name.toLowerCase().includes(this.searchUsers.toLowerCase()) ||
             user.email.toLowerCase().includes(this.searchUsers.toLowerCase());
         const roleMatch = this.filterUsersByRole === '' || user.role === this.filterUsersByRole;
-        return searchMatch && roleMatch;
+        const statusMatch = this.filterUsersByStatus === '' || user.status === this.filterUsersByStatus;
+        return searchMatch && roleMatch && statusMatch;
       });
     },
     filteredAndSortedUsers() {
@@ -328,6 +368,7 @@ export default defineComponent({
         if (this.sortUsersBy === 'name') return a.name.localeCompare(b.name);
         if (this.sortUsersBy === 'role') return a.role.localeCompare(b.role);
         if (this.sortUsersBy === 'email') return a.email.localeCompare(b.email);
+        if (this.sortUsersBy === 'status') return a.status.localeCompare(b.status);
         return 0;
       });
       return sortedUsers;
@@ -415,6 +456,52 @@ export default defineComponent({
     }
   },
   methods: {
+    userStatusClass(status) {
+      if (status === 'Suspendu') return 'status-suspended';
+      if (status === 'Banni') return 'status-banned';
+      return 'status-active';
+    },
+    formatBanDuration(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    },
+    openSuspendModal(user) {
+      this.selectedUser = user;
+      this.showSuspendModal = true;
+    },
+    closeSuspendModal() {
+      this.selectedUser = null;
+      this.showSuspendModal = false;
+    },
+    suspendUser() {
+      if (this.selectedUser) {
+        this.selectedUser.status = 'Suspendu';
+        this.closeSuspendModal();
+      }
+    },
+    openBanModal(user) {
+      this.selectedUser = user;
+      this.banDuration = null;
+      this.showBanModal = true;
+    },
+    closeBanModal() {
+      this.selectedUser = null;
+      this.banDuration = null;
+      this.showBanModal = false;
+    },
+    banUser() {
+      if (this.selectedUser && this.banDuration > 0) {
+        this.selectedUser.status = 'Banni';
+        this.selectedUser.banDuration = parseInt(this.banDuration);
+        this.closeBanModal();
+      } else {
+        alert('Veuillez entrer une durée de bannissement valide.');
+      }
+    },
+    activateUser(user) {
+      user.status = 'Actif';
+      user.banDuration = null;
+    },
     openCreateUserModal() {
       this.showCreateUserModal = true;
       this.newUser = { name: '', email: '', role: 'Modérateur' }; // Réinitialise le formulaire
@@ -424,7 +511,7 @@ export default defineComponent({
     },
     createUser() {
       if (this.newUser.name && this.newUser.email && this.newUser.role) {
-        this.users.push({ ...this.newUser });
+        this.users.push({ ...this.newUser, status: 'Actif' }); // Ajout du statut par défaut
         this.closeCreateUserModal();
       } else {
         alert('Veuillez remplir tous les champs pour créer un utilisateur.');
@@ -502,7 +589,8 @@ export default defineComponent({
       }
     },
     deleteUser(user) {
-      this.users = this.users.filter(u => u !== user);
+      // Suppression de l'ancienne logique de suppression
+      console.warn('La suppression des utilisateurs est désactivée. Utilisez la suspension ou le bannissement.');
     },
     deleteCategory(category) {
       this.categories = this.categories.filter(c => c !== category);
@@ -513,6 +601,7 @@ export default defineComponent({
   }
 });
 </script>
+
 <style scoped>
 .back-office {
   font-family: Arial, sans-serif;
@@ -591,7 +680,7 @@ export default defineComponent({
 }
 
 .scrollable {
-  max-height: 3;
+  max-height: 300px;
   overflow-y: auto;
   padding-right: 5px;
 }
@@ -731,7 +820,8 @@ export default defineComponent({
 .modal-content select,
 .modal-content textarea,
 .modal-content input[type="file"],
-.modal-content input[type="url"] {
+.modal-content input[type="url"],
+.modal-content input[type="number"] {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
@@ -800,4 +890,85 @@ export default defineComponent({
   background-color: #218838;
 }
 
+.user-actions {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.suspend-button {
+  background-color: #ffc107;
+  color: #333;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.suspend-button:hover {
+  background-color: #e0a800;
+}
+
+.ban-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.ban-button:hover {
+  background-color: #c82333;
+}
+
+.activate-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.3s ease;
+}
+
+.activate-button:hover {
+  background-color: #218838;
+}
+
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+
+.status-suspended {
+  color: orange;
+  font-weight: bold;
+}
+
+.status-banned {
+  color: red;
+  font-weight: bold;
+}
+
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+}
 </style>
