@@ -2,6 +2,7 @@ package com.ReSourcesRelationnelles.prod.infrastructure;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -9,15 +10,21 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 @Configuration
 public class DatabaseConfig {
 
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        // (pour le dev)
-//        dataSource.setUrl("jdbc:mysql://localhost:3306/db_re_sources_relationnelles");
-        // (pour le front)
-        dataSource.setUrl("jdbc:mysql://database:3306/db_re_sources_relationnelles");
-        dataSource.setUsername("root");
-        dataSource.setPassword("password");
+        dataSource.setUrl(dbUrl);
+        dataSource.setUsername(dbUsername);
+        dataSource.setPassword(dbPassword);
         return dataSource;
     }
 
