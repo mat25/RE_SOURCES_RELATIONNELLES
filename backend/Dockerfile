@@ -19,7 +19,7 @@ WORKDIR /app
 COPY . .
 
 # Construire le .jar
-RUN mvn clean package -DskipTests
+RUN ./mvnw clean package -DskipTests "-Dspring.profiles.active=docker"
 
 # Étape 2 : Utiliser une image Java pour exécuter le .jar
 FROM openjdk:11-jre-slim
