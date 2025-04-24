@@ -1,30 +1,76 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+.melose
+generated_plugin_registrant.dart
 
-node_modules
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Pods/
+ios/.flutter-plugins
+ios/.flutter-plugins-dependencies
+ios/Runner.xcworkspace/
+ios/build/
+ios/.generated/
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+
+# macOS
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.podspec
+macos/Pods/
+macos/build/
+macos/.generated/
+macos/Runner.xcworkspace/
+
+# Web
+web/.dart_tool/
+web/build/
+web/generated/
+
+# Windows
+windows/.dart_tool/
+windows/build/
+windows/generated/
+windows/runner/ephemeral/
+
+# Linux
+linux/.dart_tool/
+linux/build/
+linux/generated/
+linux/runner/ephemeral/
+
+# VS Code
+.vscode/
+.history/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# System
 .DS_Store
-dist
-dist-ssr
-coverage
-*.local
+*.log
+*.tmp
+*.swp
 
-/cypress/videos/
-/cypress/screenshots/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-*.tsbuildinfo
+# Others
+.metadata
+*.class
+*.pyc
+.svn/
+.swiftpm/
+migrate_working_dir/

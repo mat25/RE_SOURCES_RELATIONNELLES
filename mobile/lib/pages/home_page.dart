@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import '../repositories/ressource_repository.dart';
+import '../models/ressource.dart';
+import '../core/api/api_client.dart';
+import 'package:provider/provider.dart';
+import '../providers/session_provider.dart';
+import 'main_page.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ressourceRepository = RessourceRepository(ApiClient());
+  late Future<List<Ressource>> ressources;
+
+  @override
+  void initState() {
+    super.initState();
+    ressources = ressourceRepository.getRessources();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = Provider.of<SessionProvider>(context);
+
+    return Scaffold(
+      backgroundColor: Colors.deepPurple.shade50,
+      body: FutureBuilder<List<Ressource>>(
+        future: ressources,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erreur : ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            return Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Bienvenue !',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Découvrez les différentes ressources disponibles dans notre base. '
+                          'Faites défiler pour explorer !',
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 30),
+                    CarouselSlider(
+                      options: CarouselOptions(
+                        height: 300,
+                        autoPlay: true,
+                        enlargeCenterPage: true,
+                        enableInfiniteScroll: true,
+                        autoPlayInterval: const Duration(seconds: 3),
+                        viewportFraction: 0.8,
+                      ),
+                      items: snapshot.data!.map((ressource) {
+                        return Card(
+                          color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  ressource.name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Année : ${ressource.year}',
+                                  style: const TextStyle(fontSize: 18, color: Colors.white70),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Pantone : ${ressource.pantoneValue}',
+                                  style: const TextStyle(fontSize: 16, color: Colors.white60),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.view_list),
+                        label: const Text('Voir toutes les ressources'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          final session = Provider.of<SessionProvider>(context, listen: false);
+                          session.goToTab(0);
+
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => MainPage(session: session),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return const Center(child: Text('Aucune donnée disponible'));
+          }
+        },
+      ),
+    );
+  }
+}
