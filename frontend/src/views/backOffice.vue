@@ -162,6 +162,7 @@
 
     <div class="section-box" style="width: 100%;">
       <h2 class="section-title">Statistiques</h2>
+      <button class="export-stats-button" @click="exportStatistics">Exporter les statistiques</button>
       <div class="stats-container">
         <div class="stats-row">
           <div class="stats-chart-container">
@@ -597,6 +598,43 @@ export default defineComponent({
     },
     deleteResource(resource) {
       this.resources = this.resources.filter(r => r !== resource);
+    },
+
+    exportStatistics() {
+      const userRolesHeader = ["Rôle", "Nombre d'utilisateurs"];
+      const userRolesDataRows = this.userRolesData.labels.map((label, index) => [
+        label,
+        this.userRolesData.datasets[0].data[index],
+      ]);
+      const userRolesCSV = [userRolesHeader, ...userRolesDataRows]
+          .map((row) => row.join(','))
+          .join('\n');
+
+      const consultationChartData = this.chartOption.series[0].data;
+      const consultationChartLabels = this.chartOption.xAxis.data;
+      const consultationHeader = ["Période", "Consultations"];
+      const consultationDataRows = consultationChartLabels.map((label, index) => [
+        label,
+        consultationChartData[index],
+      ]);
+      const consultationCSV = [consultationHeader, ...consultationDataRows]
+          .map((row) => row.join(','))
+          .join('\n');
+
+      const combinedCSV = "Statistiques des utilisateurs par rôle:\n" + userRolesCSV + "\n\nStatistiques des consultations (" + this.selectedChart + "):\n" + consultationCSV;
+      this.downloadFile(combinedCSV, "statistiques.csv", "text/csv;charset=utf-8;");
+    },
+
+    downloadFile(data, filename, mimeType) {
+      const blob = new Blob([data], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     }
   }
 });
@@ -970,5 +1008,21 @@ export default defineComponent({
 
 .cancel-button:hover {
   background-color: #5a6268;
+}
+
+.export-stats-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.export-stats-button:hover {
+  background-color: #0056b3;
 }
 </style>

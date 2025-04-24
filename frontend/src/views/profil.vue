@@ -191,7 +191,6 @@ function changePassword() {
 
 function goToResource(id) {
   console.log('Redirection vers la ressource', id)
-  // Exemple : this.$router.push({ name: 'resource-detail', params: { id } })
 }
 </script>
 
