@@ -1,29 +1,76 @@
-# Android Gradle files
-mobile/android/.gradle/
-mobile/android/app/build/
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+.melose
+generated_plugin_registrant.dart
 
-# Flutter build files
-mobile/build/
+# iOS
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Pods/
+ios/.flutter-plugins
+ios/.flutter-plugins-dependencies
+ios/Runner.xcworkspace/
+ios/build/
+ios/.generated/
 
-# IDE files
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+
+# macOS
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.podspec
+macos/Pods/
+macos/build/
+macos/.generated/
+macos/Runner.xcworkspace/
+
+# Web
+web/.dart_tool/
+web/build/
+web/generated/
+
+# Windows
+windows/.dart_tool/
+windows/build/
+windows/generated/
+windows/runner/ephemeral/
+
+# Linux
+linux/.dart_tool/
+linux/build/
+linux/generated/
+linux/runner/ephemeral/
+
+# VS Code
+.vscode/
+.history/
+
+# IntelliJ / Android Studio
 .idea/
-
-# MacOS
-.DS_Store
-
-# Android Studio and IntelliJ configuration
 *.iml
-*.ipr
-*.iws
 
-# Log and temporary files
+# System
+.DS_Store
 *.log
-*.class
-*.pyc
-.swp
+*.tmp
+*.swp
 
 # Others
-.history
+.metadata
+*.class
+*.pyc
 .svn/
 .swiftpm/
 migrate_working_dir/

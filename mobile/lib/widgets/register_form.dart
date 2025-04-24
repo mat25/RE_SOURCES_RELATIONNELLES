@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/widgets/register_form.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+class RegisterForm extends StatefulWidget {
+  const RegisterForm({super.key});
 
   @override
-  State<LoginForm> createState() => _LoginFormState();
+  State<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _RegisterFormState extends State<RegisterForm> {
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  String confirmPassword = '';
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class _LoginFormState extends State<LoginForm> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Connexion',
+                    'Créer un compte',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -39,6 +40,36 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.account_circle),
+                      labelText: 'Prénom',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.badge),
+                      labelText: 'Nom',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.alternate_email),
+                      labelText: 'Pseudo',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.email),
@@ -67,31 +98,35 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                     onChanged: (value) => session.password = value,
                   ),
-                  const SizedBox(height: 12),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Mot de passe oublié ?',
-                        style: TextStyle(color: Colors.deepPurple),
+                  const SizedBox(height: 16),
+                  TextField(
+                    obscureText: _obscureConfirmPassword,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      labelText: 'Confirmer le mot de passe',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
                       ),
                     ),
+                    onChanged: (value) => confirmPassword = value,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton.icon(
-                      icon: const Icon(
-                          Icons.login,
-                          color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.person_add, color: Colors.white),
                       label: const Text(
-                        'Se connecter',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                        ),
+                        'S’inscrire',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
@@ -99,23 +134,30 @@ class _LoginFormState extends State<LoginForm> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: () => session.login(),
+                      onPressed: () {
+                        if (session.password != confirmPassword) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Les mots de passe ne correspondent pas.')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Compte créé !')),
+                          );
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Pas encore de compte ?"),
+                      const Text("Déjà un compte ?"),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RegisterForm()),
-                          );
+                          Navigator.pop(context);
                         },
                         child: const Text(
-                          'Créer un compte',
+                          'Se connecter',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple),
                         ),
                       ),

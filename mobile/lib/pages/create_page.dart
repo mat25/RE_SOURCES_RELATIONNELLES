@@ -10,8 +10,17 @@ class CreatePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = Provider.of<SessionProvider>(context);
 
-    return session.isLoggedIn
-        ? const Center(child: Text('Page des favoris'))
-        : const LoginForm();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Create Page'),
+      ),
+      body: session.isLoggedIn
+          ? const Center(
+        child: Text('User is logged in'),
+      )
+          : const LoginForm(),
+    );
   }
 }
+
+

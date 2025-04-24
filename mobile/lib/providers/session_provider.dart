@@ -23,7 +23,7 @@ class SessionProvider with ChangeNotifier {
 
     final userRepository = UserRepository(ApiClient());
     try {
-      _user = await userRepository.getUser(3);
+      _user = await userRepository.getUser(4);
       notifyListeners();
     } catch (e) {
       print("Erreur de login : $e");

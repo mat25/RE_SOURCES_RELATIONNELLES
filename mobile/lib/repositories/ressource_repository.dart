@@ -9,7 +9,6 @@ class RessourceRepository {
   Future<List<Ressource>> getRessources() async {
     final response = await _client.get('/unknown');
 
-    // Vérification du JSON retourné
     print('Réponse : ${response.data}');
 
     if (response.data != null && response.data['data'] is List) {
@@ -18,4 +17,7 @@ class RessourceRepository {
       throw Exception('Format de réponse inattendu');
     }
   }
+
+
+
 }

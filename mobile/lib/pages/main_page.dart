@@ -23,7 +23,6 @@ class _MainPageState extends State<MainPage> {
     const RessourcesPage(),
     const FavoritesPage(),
     const HomePage(),
-    const CreatePage(),
     const SettingsPage(),
   ];
 
@@ -54,10 +53,6 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Accueil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add),
-            label: 'Créer',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

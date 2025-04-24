@@ -12,31 +12,33 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       body: session.isLoggedIn
-          ? Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 30),
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(session.user?.avatar ?? ''),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            session.user?.name ?? 'Nom inconnu',
-            style: const TextStyle(fontSize: 18),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            session.user?.email ?? 'Email non disponible',
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: () => session.logout(),
-            child: const Text("Se déconnecter"),
-          ),
-        ],
-      )
+          ? Center(
+            child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+            const SizedBox(height: 30),
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(session.user?.avatar ?? ''),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              session.user?.name ?? 'Nom inconnu',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              session.user?.email ?? 'Email non disponible',
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () => session.logout(),
+              child: const Text("Se déconnecter"),
+            ),
+                    ],
+                  ),
+          )
           : const LoginForm(),
     );
   }
