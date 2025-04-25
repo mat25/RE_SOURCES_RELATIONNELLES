@@ -12,7 +12,7 @@
 
 
 # Étape 1 : Utiliser une image de Maven pour construire le .jar
-FROM maven:3.8.4-openjdk-11-slim AS build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 # Copier le code source dans l'image
 WORKDIR /app
@@ -22,16 +22,16 @@ COPY . .
 RUN mvn clean package -DskipTests "-Dspring.profiles.active=docker"
 
 # Étape 2 : Utiliser une image Java pour exécuter le .jar
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:21-jre
 
 # Créer un répertoire pour l'application
 WORKDIR /app
 
 # Copier le fichier .jar depuis l'étape de build
-COPY --from=build /app/target/mon-application.jar /app/mon-application.jar
+COPY --from=build /app/target/prod-0.0.1-SNAPSHOT.jar app.jar
 
 # Exposer le port
 EXPOSE 8080
 
 # Commande pour démarrer l'application
-CMD ["java", "-jar", "mon-application.jar"]
+CMD ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]
