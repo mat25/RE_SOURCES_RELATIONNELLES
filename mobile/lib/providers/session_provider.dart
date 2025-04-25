@@ -42,4 +42,5 @@ class SessionProvider with ChangeNotifier {
     _currentIndex = index;
     notifyListeners();
   }
+
 }

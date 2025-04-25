@@ -53,14 +53,14 @@ class _HomePageState extends State<HomePage> {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 50),
                     const Text(
                       'Découvrez les différentes ressources disponibles dans notre base. '
                           'Faites défiler pour explorer !',
                       style: TextStyle(fontSize: 16, color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 50),
                     CarouselSlider(
                       options: CarouselOptions(
                         height: 300,
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 100),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(

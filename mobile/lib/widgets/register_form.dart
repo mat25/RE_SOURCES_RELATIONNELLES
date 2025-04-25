@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/session_provider.dart';
+import '../repositories/user_repository.dart';
+import '../core/api/api_client.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -10,14 +10,46 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
+  String prenom = '';
+  String nom = '';
+  String pseudo = '';
+  String email = '';
+  String password = '';
+  String confirmPassword = '';
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String confirmPassword = '';
+
+  final userRepo = UserRepository(ApiClient());
+
+  Future<void> _register() async {
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Les mots de passe ne correspondent pas.')),
+      );
+      return;
+    }
+
+    try {
+      await userRepo.registerUser(
+        firstName: prenom,
+        lastName: nom,
+        pseudo: pseudo,
+        email: email,
+        password: password,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Compte créé avec succès !')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final session = Provider.of<SessionProvider>(context);
-
     return Card(
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -36,80 +68,26 @@ class _RegisterFormState extends State<RegisterForm> {
               ),
             ),
             const SizedBox(height: 24),
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.account_circle),
-                labelText: 'Prénom',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {},
+            _buildTextField(label: 'Prénom', icon: Icons.account_circle, onChanged: (v) => prenom = v),
+            const SizedBox(height: 16),
+            _buildTextField(label: 'Nom', icon: Icons.badge, onChanged: (v) => nom = v),
+            const SizedBox(height: 16),
+            _buildTextField(label: 'Pseudo', icon: Icons.alternate_email, onChanged: (v) => pseudo = v),
+            const SizedBox(height: 16),
+            _buildTextField(label: 'Email', icon: Icons.email, onChanged: (v) => email = v),
+            const SizedBox(height: 16),
+            _buildPasswordField(
+              label: 'Mot de passe',
+              obscure: _obscurePassword,
+              toggle: () => setState(() => _obscurePassword = !_obscurePassword),
+              onChanged: (v) => password = v,
             ),
             const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.badge),
-                labelText: 'Nom',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {},
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.alternate_email),
-                labelText: 'Pseudo',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {},
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.email),
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) => session.email = value,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.lock),
-                labelText: 'Mot de passe',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-              ),
-              onChanged: (value) => session.password = value,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              obscureText: _obscureConfirmPassword,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.lock_outline),
-                labelText: 'Confirmer le mot de passe',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureConfirmPassword = !_obscureConfirmPassword;
-                    });
-                  },
-                ),
-              ),
-              onChanged: (value) => confirmPassword = value,
+            _buildPasswordField(
+              label: 'Confirmer le mot de passe',
+              obscure: _obscureConfirmPassword,
+              toggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+              onChanged: (v) => confirmPassword = v,
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -117,32 +95,49 @@ class _RegisterFormState extends State<RegisterForm> {
               height: 50,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.person_add, color: Colors.white),
-                label: const Text(
-                  'S’inscrire',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                label: const Text('S’inscrire', style: TextStyle(fontSize: 16, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                onPressed: () {
-                  if (session.password != confirmPassword) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Les mots de passe ne correspondent pas.')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Compte créé !')),
-                    );
-                  }
-                },
+                onPressed: _register,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({required String label, required IconData icon, required Function(String) onChanged}) {
+    return TextField(
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon),
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildPasswordField({
+    required String label,
+    required bool obscure,
+    required VoidCallback toggle,
+    required Function(String) onChanged,
+  }) {
+    return TextField(
+      obscureText: obscure,
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.lock),
+        labelText: label,
+        border: const OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
+          onPressed: toggle,
+        ),
+      ),
+      onChanged: onChanged,
     );
   }
 }
