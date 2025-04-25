@@ -13,7 +13,7 @@
         <n-form-item label="Mot de passe" :error="errors.password">
           <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" />
         </n-form-item>
-
+        <p v-if="errors.password" class="error">{{ errors.password }}</p>
         <n-form-item>
           <n-button type="primary" @click="inscription">S'inscrire</n-button>
         </n-form-item>
@@ -137,5 +137,11 @@ export default {
 
 .n-button {
   width: 100%;
+}
+
+
+.error {
+  color: red;
+  font-size: 14px;
 }
 </style>
