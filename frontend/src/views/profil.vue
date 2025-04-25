@@ -197,15 +197,22 @@ function goToResource(id) {
 <style scoped>
 .profile-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row; 
+  align-items: flex-start; 
+  justify-content: space-around; 
   padding: 40px 20px;
+  gap: 20px; 
 }
 
-.profile-card {
-  width: 500px;
+.profile-card,
+.favorites-section,
+.stats-section {
+  width: auto; 
+  flex: 1;
   padding: 20px;
+  margin-top: 0; 
 }
+
 
 .profile-info {
   margin-left: 20px;
@@ -218,11 +225,6 @@ function goToResource(id) {
 .error {
   color: red;
   font-size: 14px;
-}
-
-.favorites-section,
-.stats-section {
-  width: 500px;
 }
 
 .resource-card {

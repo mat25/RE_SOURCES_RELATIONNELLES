@@ -7,6 +7,8 @@ import resources from "@/views/resources.vue";
 import progression from "@/views/progression.vue";
 import backOffice from "@/views/backOffice.vue";
 import detailResources from "@/views/detailResources.vue";
+import allResources from '@/views/allResources.vue';
+import AllResources from '@/views/allResources.vue';
 
 
 const router = createRouter({
@@ -53,6 +55,12 @@ const router = createRouter({
       path: '/detailRessource',
       name: 'detailRessource',
       component: detailResources
+    },
+
+    {
+      path: '/allResource',
+      name: 'allResource',
+      component: AllResources
     },
 
 
