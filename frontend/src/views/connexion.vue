@@ -2,17 +2,22 @@
   <div class="formulaire">
     <n-card title="Connexion">
       <n-form @submit.prevent="login" :label-width="100">
+        <div class="form-control">
+          <n-form-item label="Email" :error="errors.email">
+            <n-input v-model="credentials.email" @input="validateEmail" placeholder="Entrez votre email" />
+          </n-form-item>
+          <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
+        </div>
 
-        <n-form-item label="Email" :error="errors.email">
-          <n-input v-model="credentials.email" @input="validateEmail" placeholder="Entrez votre email" />
-        </n-form-item>
-
-        <n-form-item label="Mot de passe" :error="errors.password">
-          <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" />
-        </n-form-item>
+        <div class="form-control">
+          <n-form-item label="Mot de passe" :error="errors.password">
+            <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" />
+          </n-form-item>
+          <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
+        </div>
 
         <n-form-item>
-          <n-button type="primary" @click="login">connexion</n-button>
+          <n-button type="primary" @click="login">Connexion</n-button>
         </n-form-item>
       </n-form>
     </n-card>
@@ -44,15 +49,30 @@ export default {
     }
   },
   methods: {
+    validateEmail() {
+      this.errors.email = '';
+      if (!this.credentials.email) {
+        this.errors.email = 'Veuillez saisir votre email.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.credentials.email)) {
+        this.errors.email = 'Email invalide.';
+      }
+    },
+    validatePassword() {
+      this.errors.password = '';
+      if (!this.credentials.password) {
+        this.errors.password = 'Veuillez saisir votre mot de passe.';
+      }
+    },
     login() {
-      this.errors = {
-        pseudo: 'veuillez saisir un pseudos',
-        email: 'veuillez saisir un mail',
-        password: 'veuillez saisir un mot de passe valide',
-      };
+      this.validateEmail();
+      this.validatePassword();
 
-      // a faire quand le back sera fais
+      if (this.errors.email || this.errors.password) {
+        return;
+      }
 
+      console.log('Tentative de connexion:', this.credentials);
+      // Ici, vous ferez l'appel à votre backend pour la connexion
     }
   }
 }
@@ -76,8 +96,13 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.n-form-item {
+.form-control {
   margin-bottom: 15px;
+  width: 100%;
+}
+
+.n-form-item {
+  margin-bottom: 0;
 }
 
 .n-input {
@@ -86,5 +111,14 @@ export default {
 
 .n-button {
   width: 100%;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>
