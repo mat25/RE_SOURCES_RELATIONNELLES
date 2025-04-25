@@ -1,18 +1,18 @@
 package com.ReSourcesRelationnelles.prod.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.web.bind.annotation.RequestBody;
+import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
 import com.ReSourcesRelationnelles.prod.service.UserService;
-import com.ReSourcesRelationnelles.prod.dto.CreateUserRequest;
+import com.ReSourcesRelationnelles.prod.dto.CreateUserRequestDTO;
 
 @RestController
 public class UserController {
@@ -26,22 +26,29 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+
+        List<UserDTO> userDTOList = new ArrayList<>();
+
+        for (User user : users) {
+            userDTOList.add(new UserDTO(user));
+        }
+
+        return userDTOList;
     }
 
-    @GetMapping("/byEmail")
-    public List<User> getUserByEmail() {
-        return userRepository.findByEmail("test@email.fr");
+    @GetMapping("/userById")
+    public Optional<User> getUserById(@RequestParam("id") Long id) {
+        return userRepository.findById(id);
     }
 
-    @PostMapping("/createUser")
-    public ResponseEntity<User> createUser(@RequestBody CreateUserRequest request) {
-        System.out.println("Username: " + request.getUsername());
-        System.out.println("Email: " + request.getEmail());
-        System.out.println("Password: " + request.getPassword());
-
+    @PostMapping("/register")
+    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserRequestDTO request) {
         User createdUser = userService.createUser(request);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+
+        UserDTO userDTO = new UserDTO(createdUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
     }
 }

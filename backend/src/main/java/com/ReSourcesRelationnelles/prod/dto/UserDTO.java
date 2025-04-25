@@ -1,47 +1,31 @@
-package com.ReSourcesRelationnelles.prod.entity;
+package com.ReSourcesRelationnelles.prod.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import com.ReSourcesRelationnelles.prod.entity.User;
 
 import java.time.LocalDateTime;
 
-@Entity
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class UserDTO {
     private Long id;
     private String name;
     private String firstName;
     private String pseudo;
     private String email;
-    private String password;
     private String status;
     private LocalDateTime registrationDate;
     // En minute
     private Integer timeBan;
     private LocalDateTime banDate;
 
-    public User() {}
-
-    public User(String name, String firstName, String pseudo, String email, String password) {
-        this.name = name;
-        this.firstName = firstName;
-        this.pseudo = pseudo;
-        this.email = email;
-        this.password = password;
-        this.status = "ACTIVE";
-        this.registrationDate = LocalDateTime.now();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public UserDTO(User user) {
+        this.id = user.getId();
+        this.name = user.getName();
+        this.firstName = user.getFirstName();
+        this.pseudo = user.getPseudo();
+        this.email = user.getEmail();
+        this.status = user.getStatus();
+        this.registrationDate = user.getRegistrationDate();
+        this.timeBan = user.getTimeBan();
+        this.banDate = user.getBanDate();
     }
 
     public Long getId() {
@@ -50,6 +34,14 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getFirstName() {
@@ -74,14 +66,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getStatus() {

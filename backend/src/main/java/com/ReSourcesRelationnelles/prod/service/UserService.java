@@ -1,15 +1,12 @@
 package com.ReSourcesRelationnelles.prod.service;
 
-import java.time.LocalDateTime;
-
-import com.ReSourcesRelationnelles.prod.dto.CreateUserRequest;
+import com.ReSourcesRelationnelles.prod.dto.CreateUserRequestDTO;
+import com.ReSourcesRelationnelles.prod.utility.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
-
-import jakarta.annotation.PostConstruct;
 
 @Service
 public class UserService {
@@ -22,11 +19,11 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(CreateUserRequest request) {
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // Tu peux hash le mot de passe ici
+    public User createUser(CreateUserRequestDTO request) {
+
+        String hashedPassword = PasswordHasher.hash(request.getPassword());
+
+        User user = new User(request.getName(),request.getFirstName(), request.getPseudo(), request.getEmail(), hashedPassword);
 
         return userRepository.save(user);
     }
