@@ -39,9 +39,17 @@ public class UserController {
         return userDTOList;
     }
 
-    @GetMapping("/userById")
-    public Optional<User> getUserById(@RequestBody UserByIdDTO ) {
-        return userRepository.findById(id);
+    @GetMapping("/user")
+    public ResponseEntity<UserDTO> getUserById(@RequestBody UserByIdDTO request) {
+        Optional<User> user = userRepository.findById(request.getId());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        UserDTO userDTO = new UserDTO(user.get());
+
+        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
     }
 
     @PostMapping("/register")
@@ -50,6 +58,6 @@ public class UserController {
 
         UserDTO userDTO = new UserDTO(createdUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
     }
 }
