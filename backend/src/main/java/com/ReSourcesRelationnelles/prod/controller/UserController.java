@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.ReSourcesRelationnelles.prod.dto.UserByIdDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,7 @@ public class UserController {
     }
 
     @GetMapping("/userById")
-    public Optional<User> getUserById(@RequestParam("id") Long id) {
+    public Optional<User> getUserById(@RequestBody UserByIdDTO ) {
         return userRepository.findById(id);
     }
 
