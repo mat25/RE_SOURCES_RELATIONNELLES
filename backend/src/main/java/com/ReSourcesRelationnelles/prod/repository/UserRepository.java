@@ -9,5 +9,6 @@ import com.ReSourcesRelationnelles.prod.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-
+    boolean existsByEmail(String email);
+    boolean existsByPseudo(String pseudo);
 }

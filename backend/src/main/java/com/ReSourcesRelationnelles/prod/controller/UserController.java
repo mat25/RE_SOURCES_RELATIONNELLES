@@ -1,16 +1,11 @@
 package com.ReSourcesRelationnelles.prod.controller;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import com.ReSourcesRelationnelles.prod.dto.UserByIdDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
 import com.ReSourcesRelationnelles.prod.service.UserService;
 import com.ReSourcesRelationnelles.prod.dto.CreateUserRequestDTO;
@@ -28,36 +23,16 @@ public class UserController {
 
     @GetMapping("/users")
     public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-
-        List<UserDTO> userDTOList = new ArrayList<>();
-
-        for (User user : users) {
-            userDTOList.add(new UserDTO(user));
-        }
-
-        return userDTOList;
+        return userService.getAllUsers();
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<UserDTO> getUserById(@RequestBody UserByIdDTO request) {
-        Optional<User> user = userRepository.findById(request.getId());
-
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-
-        UserDTO userDTO = new UserDTO(user.get());
-
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    @GetMapping("/user/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserRequestDTO request) {
-        User createdUser = userService.createUser(request);
-
-        UserDTO userDTO = new UserDTO(createdUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+    public ResponseEntity<Object> createUser(@RequestBody CreateUserRequestDTO request) {
+        return userService.createUser(request);
     }
 }
