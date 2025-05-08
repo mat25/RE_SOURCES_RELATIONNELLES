@@ -1,34 +1,40 @@
 package com.ReSourcesRelationnelles.prod.service;
 
-import com.ReSourcesRelationnelles.prod.dto.CreateUserRequestDTO;
-import com.ReSourcesRelationnelles.prod.dto.ErrorDTO;
-import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import com.ReSourcesRelationnelles.prod.dto.*;
+import com.ReSourcesRelationnelles.prod.security.JwtUtil;
 import com.ReSourcesRelationnelles.prod.utility.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class UserService {
 
-    // Permet de faire de l'injection de dépendance
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    JwtUtil jwtUtils;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<Object> createUser(CreateUserRequestDTO request) {
+    public ResponseEntity<Object> createUser(RegisterDTO request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -36,9 +42,9 @@ public class UserService {
         }
 
 
-        if (userRepository.existsByPseudo(request.getPseudo())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorDTO("Le pseudo est déjà utilisé."));
+                    .body(new ErrorDTO("Le username est déjà utilisé."));
         }
 
         String hashedPassword = PasswordHasher.hash(request.getPassword());
@@ -46,7 +52,7 @@ public class UserService {
         User user = new User(
                 request.getName(),
                 request.getFirstName(),
-                request.getPseudo(),
+                request.getUsername(),
                 request.getEmail(),
                 hashedPassword
         );
@@ -56,6 +62,24 @@ public class UserService {
         UserDTO userDTO = new UserDTO(savedUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+    }
+
+    public ResponseEntity<Object> loginUser(LoginDTO request) {
+
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        String token = jwtUtils.generateToken(userDetails.getUsername());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new TokenDTO(token));
     }
 
     public ResponseEntity<UserDTO> getUserById(Long id) {

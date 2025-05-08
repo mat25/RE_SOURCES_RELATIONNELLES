@@ -8,7 +8,7 @@ public class UserDTO {
     private Long id;
     private String name;
     private String firstName;
-    private String pseudo;
+    private String username;
     private String email;
     private String status;
     private LocalDateTime registrationDate;
@@ -20,7 +20,7 @@ public class UserDTO {
         this.id = user.getId();
         this.name = user.getName();
         this.firstName = user.getFirstName();
-        this.pseudo = user.getPseudo();
+        this.username = user.getUsername();
         this.email = user.getEmail();
         this.status = user.getStatus();
         this.registrationDate = user.getRegistrationDate();
@@ -52,12 +52,12 @@ public class UserDTO {
         this.firstName = firstName;
     }
 
-    public String getPseudo() {
-        return pseudo;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
