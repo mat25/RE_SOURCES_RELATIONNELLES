@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -20,12 +21,13 @@ public class UserController {
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasRole('USER')")
     public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+    public ResponseEntity<Object> getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 

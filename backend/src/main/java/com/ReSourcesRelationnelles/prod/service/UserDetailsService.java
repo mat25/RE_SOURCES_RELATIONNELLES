@@ -14,7 +14,7 @@ public class UserDetailsService implements org.springframework.security.core.use
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException("User Not Found with username: " + username);
+            throw new UsernameNotFoundException("Utilisateur introuvable pour le username : " + username);
         }
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

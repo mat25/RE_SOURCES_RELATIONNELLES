@@ -1,6 +1,8 @@
 package com.ReSourcesRelationnelles.prod.service;
 
 import com.ReSourcesRelationnelles.prod.dto.*;
+import com.ReSourcesRelationnelles.prod.entity.Role;
+import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import com.ReSourcesRelationnelles.prod.security.JwtUtil;
 import com.ReSourcesRelationnelles.prod.utility.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private RoleService roleService;
+    @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     JwtUtil jwtUtils;
@@ -47,6 +51,12 @@ public class UserService {
                     .body(new ErrorDTO("Le username est déjà utilisé."));
         }
 
+        Optional<Role> optionalRole = roleService.findByName(RoleEnum.USER);
+
+        if (optionalRole.isEmpty()) {
+            return null;
+        }
+
         String hashedPassword = PasswordHasher.hash(request.getPassword());
 
         User user = new User(
@@ -54,7 +64,8 @@ public class UserService {
                 request.getFirstName(),
                 request.getUsername(),
                 request.getEmail(),
-                hashedPassword
+                hashedPassword,
+                optionalRole
         );
 
         User savedUser = userRepository.save(user);
@@ -82,11 +93,11 @@ public class UserService {
                 .body(new TokenDTO(token));
     }
 
-    public ResponseEntity<UserDTO> getUserById(Long id) {
+    public ResponseEntity<Object> getUserById(Long id) {
         Optional<User> user = userRepository.findById(id);
 
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDTO("L'utilisateur '"+id+"' n'existe pas."));
         }
 
         UserDTO userDTO = new UserDTO(user.get());

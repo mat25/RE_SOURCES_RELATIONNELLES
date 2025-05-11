@@ -1,10 +1,12 @@
 package com.ReSourcesRelationnelles.prod.security;
 
+import com.ReSourcesRelationnelles.prod.service.UserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -12,12 +14,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 @Configuration
+@EnableMethodSecurity
 public class WebSecurityConfig {
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+    @Autowired
+    private AuthEntryPointJwt authEntryPointJwt;
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private UserDetailsService userDetailsService;
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
+        return new AuthTokenFilter(jwtUtil,userDetailsService);
     }
     @Bean
     public AuthenticationManager authenticationManager(
@@ -46,6 +57,10 @@ public class WebSecurityConfig {
                                 .requestMatchers("/register", "/login").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authEntryPointJwt)
+                        .accessDeniedHandler(accessDeniedHandler)
                 );
         // Add the JWT Token filter before the UsernamePasswordAuthenticationFilter
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

@@ -1,5 +1,6 @@
 package com.ReSourcesRelationnelles.prod.dto;
 
+import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.User;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ public class UserDTO {
     private String username;
     private String email;
     private String status;
+    private Role role;
     private LocalDateTime registrationDate;
     // En minute
     private Integer timeBan;
@@ -23,6 +25,7 @@ public class UserDTO {
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.status = user.getStatus();
+        this.role = user.getRole();
         this.registrationDate = user.getRegistrationDate();
         this.timeBan = user.getTimeBan();
         this.banDate = user.getBanDate();
@@ -74,6 +77,14 @@ public class UserDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public LocalDateTime getRegistrationDate() {
