@@ -3,6 +3,7 @@ package com.ReSourcesRelationnelles.prod.controller;
 import java.util.List;
 
 import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
+import com.ReSourcesRelationnelles.prod.dto.UpdateUserDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
 import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,5 +41,10 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Object> loginUser(@RequestBody LoginDTO request) {
         return userService.loginUser(request);
+    }
+
+    @PatchMapping("/users/{id}")
+    public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
+        return userService.updateUser(id, request);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
@@ -33,6 +34,8 @@ public class UserService {
     AuthenticationManager authenticationManager;
     @Autowired
     JwtUtil jwtUtils;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -118,6 +121,44 @@ public class UserService {
         }
 
         return userDTOList;
+    }
+
+    public ResponseEntity<Object> updateUser(Long id, UpdateUserDTO dto) {
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
+        }
+
+        User user = optionalUser.get();
+
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            user.setName(dto.getName());
+        }
+
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getFirstName() != null && !dto.getFirstName().isBlank()) {
+            user.setFirstName(dto.getFirstName());
+        }
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            String hashedPassword = passwordEncoder.encode(dto.getPassword());
+            user.setPassword(hashedPassword);
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        UserDTO userDTO = new UserDTO(updatedUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
     }
 
 
