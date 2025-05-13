@@ -94,7 +94,7 @@ public class UserService {
         String token = jwtUtils.generateToken(user.getUsername(),role);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new TokenDTO(token));
+                .body(new TokenDTO(token, user.getId()));
     }
 
     public ResponseEntity<Object> getUserById(Long id) {
