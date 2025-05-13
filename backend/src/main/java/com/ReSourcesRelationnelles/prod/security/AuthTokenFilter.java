@@ -40,13 +40,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            System.out.println("Test1");
             String token = parseJwt(request);
-            System.out.println("Test2");
             if (token != null) {
-                System.out.println("Test3");
+
                 jwtUtil.validateJwtToken(token);
-                System.out.println("Test4");
+
                 String username = jwtUtil.getUsernameFromToken(token);
                 String roleName = jwtUtil.getRoleFromToken(token);  // Récupère le rôle
 

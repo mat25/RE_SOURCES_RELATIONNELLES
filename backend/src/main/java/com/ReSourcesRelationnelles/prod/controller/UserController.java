@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -21,15 +22,9 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/admin-dashboard")
-    public String adminDashboard() {
-        return "Welcome Admin!";
     }
 
     @GetMapping("/user/{id}")

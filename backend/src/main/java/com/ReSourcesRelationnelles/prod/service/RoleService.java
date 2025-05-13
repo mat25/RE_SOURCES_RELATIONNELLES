@@ -26,20 +26,20 @@ public class RoleService {
     @PostConstruct
     void init() {
         Map<RoleEnum, String> roleDescriptionMap = Map.of(
-                RoleEnum.USER, "Default user role",
-                RoleEnum.ADMIN, "Administrator role",
-                RoleEnum.SUPER_ADMIN, "Super Administrator role"
+                RoleEnum.USER, "Rôle user",
+                RoleEnum.MODERATOR, "Rôle modérateur",
+                RoleEnum.ADMIN, "Rôle administrateur",
+                RoleEnum.SUPER_ADMIN, "Rôle super-administrateur"
         );
 
         roleDescriptionMap.forEach((roleName, description) ->
                 roleRepository.findByName(roleName).ifPresentOrElse(
-                        role -> logger.info("Role already exists: {}", role),
+                        role -> logger.info("Le rôle existe déjà : {}", role),
                         () -> {
                             Role roleToCreate = new Role();
                             roleToCreate.setName(roleName);
                             roleToCreate.setDescription(description);
                             roleRepository.save(roleToCreate);
-                            logger.info("Created new role: {}", roleToCreate);
                         }
                 )
         );

@@ -73,15 +73,13 @@ public class UserService {
 
     public ResponseEntity<Object> loginUser(LoginDTO request) {
 
-        System.out.println("username : "+request.getUsername());
-        System.out.println("password : "+request.getPassword());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
                 )
         );
-        System.out.println("Test 10");
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         User user = userRepository.findByUsername(userDetails.getUsername());
@@ -94,8 +92,6 @@ public class UserService {
         String role = user.getRole().getName().name();
 
         String token = jwtUtils.generateToken(user.getUsername(),role);
-
-        System.out.println("Test 12");
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new TokenDTO(token));
