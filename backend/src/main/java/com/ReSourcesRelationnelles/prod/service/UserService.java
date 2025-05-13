@@ -51,11 +51,7 @@ public class UserService {
                     .body(new ErrorDTO("Le username est déjà utilisé."));
         }
 
-        Optional<Role> optionalRole = roleService.findByName(RoleEnum.USER);
-
-        if (optionalRole.isEmpty()) {
-            return null;
-        }
+        Role role = roleService.findByName(RoleEnum.USER).orElseThrow(() -> new RuntimeException("Role USER not found"));
 
         String hashedPassword = PasswordHasher.hash(request.getPassword());
 
@@ -65,7 +61,7 @@ public class UserService {
                 request.getUsername(),
                 request.getEmail(),
                 hashedPassword,
-                optionalRole
+                role
         );
 
         User savedUser = userRepository.save(user);
@@ -77,17 +73,29 @@ public class UserService {
 
     public ResponseEntity<Object> loginUser(LoginDTO request) {
 
-
+        System.out.println("username : "+request.getUsername());
+        System.out.println("password : "+request.getPassword());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
                 )
         );
-
+        System.out.println("Test 10");
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        String token = jwtUtils.generateToken(userDetails.getUsername());
+        User user = userRepository.findByUsername(userDetails.getUsername());
+
+        if (!user.getUsername().equals(request.getUsername())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("Utilisateur introuvable après authentification."));
+        }
+
+        String role = user.getRole().getName().name();
+
+        String token = jwtUtils.generateToken(user.getUsername(),role);
+
+        System.out.println("Test 12");
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new TokenDTO(token));
@@ -97,7 +105,7 @@ public class UserService {
         Optional<User> user = userRepository.findById(id);
 
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDTO("L'utilisateur '"+id+"' n'existe pas."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
         }
 
         UserDTO userDTO = new UserDTO(user.get());

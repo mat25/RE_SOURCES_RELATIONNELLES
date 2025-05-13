@@ -21,9 +21,15 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin-dashboard")
+    public String adminDashboard() {
+        return "Welcome Admin!";
     }
 
     @GetMapping("/user/{id}")
