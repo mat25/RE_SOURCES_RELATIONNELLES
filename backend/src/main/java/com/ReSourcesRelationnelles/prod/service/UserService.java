@@ -123,7 +123,7 @@ public class UserService {
         return userDTOList;
     }
 
-    public ResponseEntity<Object> updateUser(Long id, UpdateUserDTO dto) {
+    public ResponseEntity<Object> updateUser(Long id, UpdateUserDTO request) {
         Optional<User> optionalUser = userRepository.findById(id);
 
         if (optionalUser.isEmpty()) {
@@ -133,24 +133,24 @@ public class UserService {
 
         User user = optionalUser.get();
 
-        if (dto.getName() != null && !dto.getName().isBlank()) {
-            user.setName(dto.getName());
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName());
         }
 
-        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
-            user.setUsername(dto.getUsername());
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            user.setUsername(request.getUsername());
         }
 
-        if (dto.getFirstName() != null && !dto.getFirstName().isBlank()) {
-            user.setFirstName(dto.getFirstName());
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            user.setFirstName(request.getFirstName());
         }
 
-        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
-            user.setEmail(dto.getEmail());
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            user.setEmail(request.getEmail());
         }
 
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            String hashedPassword = passwordEncoder.encode(dto.getPassword());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            String hashedPassword = passwordEncoder.encode(request.getPassword());
             user.setPassword(hashedPassword);
         }
 
@@ -161,5 +161,29 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK).body(userDTO);
     }
 
+    public ResponseEntity<Object> getCurrentUser(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
 
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("Utilisateur non trouvé."));
+        }
+
+        UserDTO userDTO = new UserDTO(user);
+
+        return ResponseEntity.ok(userDTO);
+    }
+
+    public ResponseEntity<Object> updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("Utilisateur non trouvé."));
+        }
+
+        return updateUser(user.getId(), request);
+    }
 }
