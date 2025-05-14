@@ -55,8 +55,19 @@ public class UserController {
         return userService.updateUser(id, request);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id);
+    }
+
     @PatchMapping("/users/me")
     public ResponseEntity<Object> updateCurrentUser(@RequestBody UpdateUserDTO request, Authentication authentication) {
         return userService.updateCurrentUser(authentication, request);
+    }
+
+    @DeleteMapping("/users/me")
+    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+        return userService.deleteCurrentUser(authentication);
     }
 }
