@@ -22,7 +22,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private String status;
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     private Role role;
     private LocalDateTime registrationDate;

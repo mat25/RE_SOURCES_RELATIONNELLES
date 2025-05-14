@@ -1,21 +1,16 @@
 <template>
   <footer class="footer">
-    <p>© 2025 Mon Projet. Tous droits reserves.</p>
+    <span>&copy; 2025 RE-SOCIAL - Tous droits réservés.</span>
   </footer>
 </template>
 
-<script setup>
-</script>
-
 <style scoped>
 .footer {
+  background-color: #f2f2f2;
+  padding: 12px;
   text-align: center;
-  padding: 20px;
-  background-color: white;
-  border-top: 4px solid rgba(0, 62, 244, 0.15);
-  color: black;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
+  font-size: 14px;
+  color: #666;
+  border-top: 1px solid #ddd;
 }
 </style>

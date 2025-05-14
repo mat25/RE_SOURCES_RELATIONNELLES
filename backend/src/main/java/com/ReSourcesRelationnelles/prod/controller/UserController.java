@@ -5,7 +5,6 @@ import java.util.List;
 import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
 import com.ReSourcesRelationnelles.prod.dto.UpdateUserDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
-import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -56,8 +55,19 @@ public class UserController {
         return userService.updateUser(id, request);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id);
+    }
+
     @PatchMapping("/users/me")
     public ResponseEntity<Object> updateCurrentUser(@RequestBody UpdateUserDTO request, Authentication authentication) {
         return userService.updateCurrentUser(authentication, request);
+    }
+
+    @DeleteMapping("/users/me")
+    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+        return userService.deleteCurrentUser(authentication);
     }
 }

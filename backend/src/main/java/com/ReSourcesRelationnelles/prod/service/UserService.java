@@ -162,8 +162,7 @@ public class UserService {
     }
 
     public ResponseEntity<Object> getCurrentUser(Authentication authentication) {
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(authentication.getName());
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -176,8 +175,7 @@ public class UserService {
     }
 
     public ResponseEntity<Object> updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(authentication.getName());
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -185,5 +183,31 @@ public class UserService {
         }
 
         return updateUser(user.getId(), request);
+    }
+
+    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName());
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("Utilisateur non trouvé."));
+        }
+
+        userRepository.delete(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
+    }
+
+    public ResponseEntity<Object> deleteUser(Long id) {
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
+        }
+
+        User user = optionalUser.get();
+        userRepository.delete(user);
+        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
     }
 }
