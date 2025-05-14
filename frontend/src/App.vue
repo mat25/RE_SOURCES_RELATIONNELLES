@@ -17,13 +17,12 @@ import { CashOutline as CashIcon } from '@vicons/ionicons5';
 import Header from "@/components/template/Header.vue";
 import NavigationBar from "@/components/organisms/NavigationBar.vue";
 import Footer from "@/components/template/Footer.vue";
-import { NConfigProvider, NMessageProvider } from 'naive-ui'; // Importez les composants Naive UI
+import { NConfigProvider, NMessageProvider } from 'naive-ui';
 </script>
 
 <style scoped>
 main {
   width: 100%;
-  height: 100vh;
-  background-color: rgba(13, 52, 158, 0.15);
-}
-</style>
+  min-height: 100vh; 
+  height: auto;
+  background-color: rgba(13, 52, 1

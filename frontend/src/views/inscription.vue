@@ -1,274 +1,203 @@
 <template>
-  <div class="formulaire">
-    <n-card title="Formulaire d'inscription">
-      <n-form @submit.prevent="submitInscription" :label-width="120">
-        <div class="form-control">
-          <n-form-item label="Prénom" :error="errors.firstName.length > 0">
-            <n-input v-model="credentials.firstName" @input="validateFirstName" placeholder="Entrez votre prénom" />
+  <div class="form-page">
+    <n-card class="form-card" title="Créer un compte" size="huge" header-style="display: none;">
+      <n-form
+        ref="formRef"
+        :model="credentials"
+        :rules="rules"
+        label-placement="top"
+        @submit.prevent="submitInscription"
+      >
+        <n-space vertical size="large">
+          <!-- First and Last name -->
+          <n-form-item label="Prénom" path="firstName">
+            <n-input v-model:value="credentials.firstName" placeholder="Jean" class="input-field" />
           </n-form-item>
-          <div v-for="(error, index) in errors.firstName" :key="index" class="error-message">{{ error }}</div>
-        </div>
-
-        <div class="form-control">
-          <n-form-item label="Nom" :error="errors.lastName.length > 0">
-            <n-input v-model="credentials.lastName" @input="validateLastName" placeholder="Entrez votre nom" />
+          <n-form-item label="Nom" path="lastName">
+            <n-input v-model:value="credentials.lastName" placeholder="Dupont" class="input-field" />
           </n-form-item>
-          <div v-for="(error, index) in errors.lastName" :key="index" class="error-message">{{ error }}</div>
-        </div>
 
-        <div class="form-control">
-          <n-form-item label="Pseudo" :error="errors.username.length > 0">
-            <n-input v-model="credentials.username" @input="validateUsername" placeholder="Entrez votre pseudo" />
+          <!-- Username -->
+          <n-form-item label="Pseudo" path="username">
+            <n-input v-model:value="credentials.username" placeholder="jean_du_25" class="input-field" />
           </n-form-item>
-          <div v-for="(error, index) in errors.username" :key="index" class="error-message">{{ error }}</div>
-        </div>
 
-        <div class="form-control">
-          <n-form-item label="Email" :error="errors.email.length > 0">
-            <n-input v-model="credentials.email" @input="validateEmail" placeholder="Entrez votre email" />
+          <!-- Email -->
+          <n-form-item label="Email" path="email">
+            <n-input v-model:value="credentials.email" placeholder="exemple@email.com" class="input-field" />
           </n-form-item>
-          <div v-for="(error, index) in errors.email" :key="index" class="error-message">{{ error }}</div>
-        </div>
 
-        <div class="form-control">
-          <n-form-item label="Mot de passe" :error="errors.password.length > 0">
-            <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" />
+          <!-- Password -->
+          <n-form-item label="Mot de passe" path="password">
+            <n-input
+              v-model:value="credentials.password"
+              type="password"
+              show-password-on="click"
+              placeholder="Mot de passe"
+              class="input-field"
+            />
           </n-form-item>
-          <div v-for="(error, index) in errors.password" :key="index" class="error-message">{{ error }}</div>
-        </div>
 
-        <n-form-item>
-          <n-button type="primary" :loading="isSubmitting" @click="submitInscription">
-            {{ isSubmitting ? 'Inscription en cours...' : 'S\'inscrire' }}
+          <!-- Confirm Password -->
+          <n-form-item label="Confirmer le mot de passe" path="confirmPassword">
+            <n-input
+              v-model:value="credentials.confirmPassword"
+              type="password"
+              show-password-on="click"
+              placeholder="Confirmation"
+              class="input-field"
+            />
+          </n-form-item>
+
+          <!-- Submit Button -->
+          <n-button
+            type="primary"
+            block
+            strong
+            round
+            size="large"
+            @click="submitInscription"
+            class="submit-button"
+          >
+            Créer un compte
           </n-button>
-        </n-form-item>
+
+          <!-- Link to login if already have an account -->
+          <p class="login-link">
+            Vous avez déjà un compte ? <a href="/login">Connectez-vous ici</a>.
+          </p>
+        </n-space>
       </n-form>
     </n-card>
   </div>
 </template>
 
-<script>
-import { NCard, NForm, NFormItem, NInput, NButton, useMessage } from 'naive-ui';
-import axios from 'axios';
-import { ref } from 'vue';
+<script setup>
+import { reactive, ref } from 'vue'
+import { useMessage } from 'naive-ui'
 
-export default {
-  name: 'Inscription',
-  components: {
-    NCard,
-    NForm,
-    NFormItem,
-    NInput,
-    NButton,
-  },
-  setup() {
-    const message = useMessage();
-    const isSubmitting = ref(false);
-    const credentials = ref({
-      firstName: '',
-      lastName: '',
-      username: '',
-      email: '',
-      password: '',
-    });
-    const errors = ref({
-      firstName: [],
-      lastName: [],
-      username: [],
-      email: [],
-      password: [],
-    });
+const formRef = ref(null)
+const message = useMessage()
 
-    const validateFirstName = () => {
-      errors.value.firstName = [];
-      if (!credentials.value.firstName) {
-        errors.value.firstName.push('Veuillez saisir votre prénom');
-      }
-    };
+const credentials = reactive({
+  firstName: '',
+  lastName: '',
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
 
-    const validateLastName = () => {
-      errors.value.lastName = [];
-      if (!credentials.value.lastName) {
-        errors.value.lastName.push('Veuillez saisir votre nom');
-      }
-    };
+const rules = {
+  firstName: [{ required: true, message: 'Prénom requis', trigger: 'blur' }],
+  lastName: [{ required: true, message: 'Nom requis', trigger: 'blur' }],
+  username: [{ required: true, message: 'Pseudo requis', trigger: 'blur' }],
+  email: [
+    { required: true, message: 'Email requis', trigger: 'blur' },
+    { type: 'email', message: 'Email invalide', trigger: ['blur', 'input'] },
+  ],
+  password: [
+    { required: true, message: 'Mot de passe requis', trigger: 'blur' },
+    { min: 6, message: '6 caractères minimum', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    {
+      validator: (_, value) =>
+        value === credentials.password
+          ? true
+          : new Error('Les mots de passe ne correspondent pas'),
+      trigger: ['blur', 'input'],
+    },
+  ],
+}
 
-    const validateUsername = () => {
-      errors.value.username = [];
-      if (!credentials.value.username) {
-        errors.value.username.push('Veuillez saisir un pseudo');
-      }
-      if (credentials.value.username.length < 3) {
-        errors.value.username.push('Le pseudo doit avoir au moins 3 caractères');
-      }
-    };
-
-    const validateEmail = () => {
-      errors.value.email = [];
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!credentials.value.email) {
-        errors.value.email.push('Veuillez saisir votre email');
-      }
-      if (!emailPattern.test(credentials.value.email)) {
-        errors.value.email.push('Email invalide');
-      }
-    };
-
-    const validatePassword = () => {
-      errors.value.password = [];
-      const password = credentials.value.password;
-      const hasUpperCase = /[A-Z]/.test(password);
-      const hasNumber = /\d/.test(password);
-
-      if (!password) {
-        errors.value.password.push('Le mot de passe est requis');
-      }
-      if (password.length < 6) {
-        errors.value.password.push('Le mot de passe doit contenir au moins 6 caractères');
-      }
-      if (!hasUpperCase) {
-        errors.value.password.push('Le mot de passe doit contenir au moins une majuscule');
-      }
-      if (!hasNumber) {
-        errors.value.password.push('Le mot de passe doit contenir au moins un chiffre');
-      }
-    };
-
-    const submitInscription = async () => {
-      errors.value = {
-        firstName: [],
-        lastName: [],
-        username: [],
-        email: [],
-        password: [],
-      };
-
-      validateFirstName();
-      validateLastName();
-      validateUsername();
-      validateEmail();
-      validatePassword();
-
-      if (
-        errors.value.firstName.length > 0 ||
-        errors.value.lastName.length > 0 ||
-        errors.value.username.length > 0 ||
-        errors.value.email.length > 0 ||
-        errors.value.password.length > 0
-      ) {
-        message.error('Veuillez corriger les erreurs du formulaire.');
-        return;
-      }
-
-      isSubmitting.value = true;
-
-      try {
-        const apiUrl = 'http://localhost:8080/register'; 
-        const response = await axios.post(apiUrl, {
-          firstName: credentials.value.firstName,
-          lastName: credentials.value.lastName,
-          username: credentials.value.username,
-          email: credentials.value.email,
-          password: credentials.value.password,
-        });
-
-        if (response.status >= 200 && response.status < 300) {
-          message.success('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-          credentials.value = { firstName: '', lastName: '', username: '', email: '', password: '' };
-        } else {
-          console.error('Erreur lors de l\'inscription:', response.data);
-          message.error('Erreur lors de l\'inscription. Veuillez réessayer.');
-          if (response.data && response.data.errors) {
-            errors.value = { ...errors.value, ...response.data.errors };
-          }
-        }
-      } catch (error) {
-        console.error('Erreur de communication avec le serveur:', error);
-        message.error('Erreur de communication avec le serveur. Veuillez réessayer plus tard.');
-        // if (error.response) {
-        //   console.error('Réponse du serveur:', error.response.data);
-        //   console.error('Statut de la réponse:', error.response.status);
-        //   console.error('Headers de la réponse:', error.response.headers);
-        // } else if (error.request) {
-        //   console.error('Pas de réponse reçue du serveur:', error.request);
-        // } else {
-        //   console.error('Erreur lors de la configuration de la requête:', error.message);
-        // }
-      } finally {
-        isSubmitting.value = false;
-      }
-    };
-
-    return {
-      credentials,
-      errors,
-      validateFirstName,
-      validateLastName,
-      validateUsername,
-      validateEmail,
-      validatePassword,
-      submitInscription,
-      isSubmitting,
-      message,
-    };
-  },
-};
+const submitInscription = async () => {
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      // Envoi API fictif
+      message.success('Inscription réussie 🎉')
+      // Ici, tu fais une vraie requête API
+    } else {
+      message.error('Veuillez corriger les erreurs')
+    }
+  })
+}
 </script>
 
 <style scoped>
-.formulaire {
+.form-page {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 50px auto;
-  width: 40vw;
-  padding: 30px;
-  box-sizing: border-box;
-  min-width: 300px;
+  min-height: 100vh;  /* On garde 100vh ici, mais on permet au formulaire de s'ajuster */
+  background: #e9eff1;
+  padding: 20px;
 }
 
-.n-card {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.form-card {
+  width: 420px;
+  max-width: 100%;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin: 0 auto;
+  /* Limite la hauteur du formulaire pour éviter qu'il soit trop grand */
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.input-field {
   border-radius: 8px;
-  padding: 30px;
-  width: 100%;
-}
-
-.form-control {
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.n-form-item {
-  margin-bottom: 0;
-}
-
-.n-input {
-  width: 100%;
-  border-radius: 6px;
-}
-
-.n-button {
-  width: 100%;
-  border-radius: 6px;
-  padding: 12px 20px;
+  padding: 12px 16px;
   font-size: 16px;
+  transition: border-color 0.3s ease;
+  border: 1px solid #ccc; /* Bordure douce */
+  margin-bottom: 20px;
 }
 
-.error-message {
-  color: #e74c3c;
-  font-size: 14px;
-  margin-top: 8px;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
+.input-field:focus {
+  border-color: #007bff; /* Changement de couleur au focus */
+}
+
+.submit-button {
+  background-color: #007bff;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 18px;
+  transition: all 0.3s;
+  margin-top: 20px; /* Espace entre les champs et le bouton */
+}
+
+.submit-button:hover {
+  background-color: #0056b3; /* Bleu foncé au survol */
+  transform: scale(1.05);
+}
+
+.submit-button:active {
+  transform: scale(0.98);
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 12px; /* Taille réduite */
+}
+
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
-  .formulaire {
-    width: 80vw;
-    margin: 30px auto;
+  .form-card {
+    width: 90%;
+    padding: 20px;
   }
 }
 </style>

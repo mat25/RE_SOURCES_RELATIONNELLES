@@ -1,53 +1,85 @@
-
 <template>
-
-  <header class="header">
-    <div class="leftSide">
-      <img src="~@/assets/9464471.png" alt="">
-      <h1 class="title">Ressources Relationnel</h1>
+  <header class="header-with-nav">
+    <div class="logo">RE-SOCIAL</div>
+    <nav class="nav-a-in-header">
+      <ul class="nav-links">
+        <li>
+          <a href="#" class="nav-link">Accueil</a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">Amis</a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">Messages</a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">Notifications</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="user-info">
+      <n-avatar round :size="36" src="https://i.pravatar.cc/36" />
+      <span class="username">Matheo</span>
     </div>
-    <slot></slot>
   </header>
 </template>
 
 <script setup>
+import { NAvatar } from 'naive-ui';
 </script>
 
-
 <style scoped>
+.header-with-nav {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: #6542B1;
+  color: white;
+}
 
-    *{
-      font-family: "Apple SD Gothic Neo", cursive;
-    }
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+  margin-right: 20px; /* Espace entre le logo et la nav */
+}
 
-    .header{
-      width: 100%;
-      height: 7rem;
-      background-color: white;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 3rem ;
-      border-bottom: 4px solid rgba(13, 52, 158, 0.15);
-    }
+.nav-a-in-header {
+  flex-grow: 1; /* Permet à la nav de prendre l'espace central */
+  /* Ajoutez d'autres styles si nécessaire pour l'alignement de la nav */
+}
 
-    .title{
-      color: #222222;
-      padding: 2rem;
-      font-weight: bold;
-      font-family: "Apple SD Gothic Neo", cursive;
-    }
+.nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center; /* Centre les liens de la nav */
+}
 
-    .leftSide{
-      display: flex;
-      flex-direction: row;
-    }
+.nav-links li {
+  margin: 0 15px;
+}
 
-    img{
-      width: 5rem;
-      height: 5rem;
-      margin-left: 1rem;
-      margin-top: 1rem;
-    }
+.nav-link {
+  text-decoration: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
 
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 20px; /* Espace entre la nav et les infos */
+}
+
+.username {
+  font-weight: 500;
+}
 </style>
