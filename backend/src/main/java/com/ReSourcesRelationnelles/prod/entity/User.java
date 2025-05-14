@@ -1,24 +1,30 @@
 package com.ReSourcesRelationnelles.prod.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Entity
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String firstName;
-    private String pseudo;
+    private String username;
     private String email;
     private String password;
     private String status;
+    @ManyToOne
+    @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
+    private Role role;
     private LocalDateTime registrationDate;
     // En minute
     private Integer timeBan;
@@ -26,14 +32,21 @@ public class User {
 
     public User() {}
 
-    public User(String name, String firstName, String pseudo, String email, String password) {
+    public User(String name, String firstName, String username, String email, String password, Role role) {
         this.name = name;
         this.firstName = firstName;
-        this.pseudo = pseudo;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.status = "ACTIVE";
         this.registrationDate = LocalDateTime.now();
+        this.role = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.getName().toString());
+        return List.of(authority);
     }
 
     public String getName() {
@@ -60,12 +73,12 @@ public class User {
         this.firstName = firstName;
     }
 
-    public String getPseudo() {
-        return pseudo;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -82,6 +95,16 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public User setRole(Role role) {
+        this.role = role;
+
+        return this;
     }
 
     public String getStatus() {

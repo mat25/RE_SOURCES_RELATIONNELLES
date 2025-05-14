@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/home_page.dart';
-import 'package:mobile/pages/settings_page.dart';
+import 'package:mobile/pages/profil_page.dart';
 import 'package:mobile/pages/ressources_page.dart';
 import 'package:mobile/pages/favorites_page.dart';
 import 'package:mobile/providers/session_provider.dart';
@@ -16,12 +16,11 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-
   final List<Widget> _pages = [
     const RessourcesPage(),
     const FavoritesPage(),
     const HomePage(),
-    const SettingsPage(),
+    const ProfilPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -36,7 +35,12 @@ class _MainPageState extends State<MainPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('(RE)Sources Relationnelles'),
+            title: const Center(
+              child: Text(
+                '(RE)Sources Relationnelles',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
             backgroundColor: Colors.deepPurple,
             foregroundColor: Colors.white,
           ),
@@ -48,6 +52,12 @@ class _MainPageState extends State<MainPage> {
             backgroundColor: Colors.deepPurple,
             selectedItemColor: Colors.white,
             unselectedItemColor: Colors.grey.shade400,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.folder),
@@ -62,8 +72,8 @@ class _MainPageState extends State<MainPage> {
                 label: 'Accueil',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: 'Paramètres',
+                icon: Icon(Icons.person),
+                label: 'Profil',
               ),
             ],
           ),

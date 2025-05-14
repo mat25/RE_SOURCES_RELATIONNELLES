@@ -1,5 +1,6 @@
 package com.ReSourcesRelationnelles.prod.dto;
 
+import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.User;
 
 import java.time.LocalDateTime;
@@ -8,9 +9,10 @@ public class UserDTO {
     private Long id;
     private String name;
     private String firstName;
-    private String pseudo;
+    private String username;
     private String email;
     private String status;
+    private Role role;
     private LocalDateTime registrationDate;
     // En minute
     private Integer timeBan;
@@ -20,9 +22,10 @@ public class UserDTO {
         this.id = user.getId();
         this.name = user.getName();
         this.firstName = user.getFirstName();
-        this.pseudo = user.getPseudo();
+        this.username = user.getUsername();
         this.email = user.getEmail();
         this.status = user.getStatus();
+        this.role = user.getRole();
         this.registrationDate = user.getRegistrationDate();
         this.timeBan = user.getTimeBan();
         this.banDate = user.getBanDate();
@@ -52,12 +55,12 @@ public class UserDTO {
         this.firstName = firstName;
     }
 
-    public String getPseudo() {
-        return pseudo;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -74,6 +77,14 @@ public class UserDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public LocalDateTime getRegistrationDate() {

@@ -1,19 +1,19 @@
 package com.ReSourcesRelationnelles.prod.dto;
 
-public class CreateUserRequestDTO {
+public class RegisterDTO {
     private String name;
     private String firstName;
-    private String pseudo;
+    private String username;
     private String email;
     private String password;
 
-    public CreateUserRequestDTO() {
+    public RegisterDTO() {
     }
 
-    public CreateUserRequestDTO(String name, String firstName, String pseudo, String email, String password) {
+    public RegisterDTO(String name, String firstName, String username, String email, String password) {
         this.name = name;
         this.firstName = firstName;
-        this.pseudo = pseudo;
+        this.username = username;
         this.email = email;
         this.password = password;
     }
@@ -34,12 +34,12 @@ public class CreateUserRequestDTO {
         this.firstName = firstName;
     }
 
-    public String getPseudo() {
-        return pseudo;
+    public String getUsername() {
+        return username;
     }
 
-    public void setPseudo(String pseudo) {
-        this.pseudo = pseudo;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {

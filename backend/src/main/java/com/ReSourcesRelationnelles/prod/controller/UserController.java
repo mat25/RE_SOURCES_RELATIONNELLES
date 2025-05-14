@@ -1,54 +1,73 @@
 package com.ReSourcesRelationnelles.prod.controller;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
+import com.ReSourcesRelationnelles.prod.dto.UpdateUserDTO;
 import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.ReSourcesRelationnelles.prod.entity.User;
-import com.ReSourcesRelationnelles.prod.repository.UserRepository;
 import com.ReSourcesRelationnelles.prod.service.UserService;
-import com.ReSourcesRelationnelles.prod.dto.CreateUserRequestDTO;
+import com.ReSourcesRelationnelles.prod.dto.LoginDTO;
 
 @RestController
 public class UserController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
 
-    public UserController(UserRepository userRepository, UserService userService) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-
-        List<UserDTO> userDTOList = new ArrayList<>();
-
-        for (User user : users) {
-            userDTOList.add(new UserDTO(user));
-        }
-
-        return userDTOList;
+        return userService.getAllUsers();
     }
 
-    @GetMapping("/userById")
-    public Optional<User> getUserById(@RequestParam("id") Long id) {
-        return userRepository.findById(id);
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/users/{id}")
+    public ResponseEntity<Object> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    @GetMapping("/users/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        return userService.getCurrentUser(authentication);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> createUser(@RequestBody CreateUserRequestDTO request) {
-        User createdUser = userService.createUser(request);
+    public ResponseEntity<Object> createUser(@RequestBody RegisterDTO request) {
+        return userService.createUser(request);
+    }
 
-        UserDTO userDTO = new UserDTO(createdUser);
+    @PostMapping("/login")
+    public ResponseEntity<Object> loginUser(@RequestBody LoginDTO request) {
+        return userService.loginUser(request);
+    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PatchMapping("/users/{id}")
+    public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
+        return userService.updateUser(id, request);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id);
+    }
+
+    @PatchMapping("/users/me")
+    public ResponseEntity<Object> updateCurrentUser(@RequestBody UpdateUserDTO request, Authentication authentication) {
+        return userService.updateCurrentUser(authentication, request);
+    }
+
+    @DeleteMapping("/users/me")
+    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+        return userService.deleteCurrentUser(authentication);
     }
 }

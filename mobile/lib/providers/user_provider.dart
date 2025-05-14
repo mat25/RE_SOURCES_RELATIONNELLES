@@ -5,7 +5,6 @@ import '../core/api/api_client.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
-
   User? get user => _user;
 
   Future<void> loadUser(int id) async {

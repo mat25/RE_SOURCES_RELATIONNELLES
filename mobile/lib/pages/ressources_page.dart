@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/detail_ressource.dart';
 import 'package:mobile/pages/login_page.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/session_provider.dart';
 import '../repositories/ressource_repository.dart';
 import '../models/ressource.dart';
 import '../core/api/api_client.dart';
-import '../widgets/login_form.dart';
 import 'create_page.dart';
 
 class RessourcesPage extends StatefulWidget {
@@ -80,9 +79,8 @@ class _RessourcesPageState extends State<RessourcesPage> {
                     ),
                   ),
                 ),
-
                 SizedBox(
-                  height: 60,
+                  height: 50,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: availableColors.length,
@@ -91,7 +89,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
                       final isSelected = selectedColor == colorHex;
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 5.0),
                         child: ChoiceChip(
                           label: Text(
                             colorHex.toUpperCase(),
@@ -110,7 +108,6 @@ class _RessourcesPageState extends State<RessourcesPage> {
                     },
                   ),
                 ),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(9.0),
@@ -124,41 +121,45 @@ class _RessourcesPageState extends State<RessourcesPage> {
                       itemCount: filteredRessources.length,
                       itemBuilder: (context, index) {
                         final ressource = filteredRessources[index];
-                        return Card(
-                          color: Color(int.parse(
-                              ressource.color.replaceFirst('#', '0xff'))
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  ressource.name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RessourceDetailPage(ressource: ressource),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    ressource.name,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'Année : ${ressource.year}',
-                                  style: const TextStyle(
-                                      fontSize: 18, color: Colors.white70
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    'Année : ${ressource.year}',
+                                    style: const TextStyle(fontSize: 18, color: Colors.white70),
                                   ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  'Pantone : ${ressource.pantoneValue}',
-                                  style: const TextStyle(
-                                      fontSize: 16, color: Colors.white60
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'Pantone : ${ressource.pantoneValue}',
+                                    style: const TextStyle(fontSize: 16, color: Colors.white60),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );
