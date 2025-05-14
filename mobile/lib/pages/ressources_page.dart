@@ -32,6 +32,18 @@ class _RessourcesPageState extends State<RessourcesPage> {
     });
   }
 
+  void _showLoginSnackbar(BuildContext context, String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
+  }
+
   List<Ressource> get filteredRessources {
     return allRessources.where((r) {
       final matchSearch = r.name.toLowerCase().contains(searchQuery.toLowerCase());
@@ -49,6 +61,11 @@ class _RessourcesPageState extends State<RessourcesPage> {
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<SessionProvider>(context);
+
+    if (session.loginMessage != null) {
+      _showLoginSnackbar(context, session.loginMessage!);
+      session.clearLoginMessage();
+    }
 
     return session.isLoggedIn
         ? Scaffold(

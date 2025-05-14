@@ -639,44 +639,45 @@ export default defineComponent({
   }
 });
 </script>
-
 <style scoped>
 .back-office {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Roboto, sans-serif;
   margin: 20px;
-  color: #333;
+  color: #2c2c2c;
+  background-color: #f4f6f8;
 }
 
 .section-title {
-  font-size: 24px;
-  margin-bottom: 15px;
-  color: #333;
-  border-bottom: 2px solid #ccc;
-  padding-bottom: 8px;
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: #005ea8;
+  border-bottom: 2px solid #005ea8;
+  padding-bottom: 6px;
+  font-weight: 600;
 }
 
 .section-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 24px;
+  margin-bottom: 30px;
 }
 
 .section-box {
-  background-color: #f9f9f9;
+  background-color: #ffffff;
+  border-left: 4px solid #005ea8;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  width: calc(50% - 10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  flex: 1 1 45%;
   min-width: 350px;
 }
 
 .stats-container {
-  background-color: #f4f4f4;
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 15px;
-  width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 20px;
 }
 
 .stats-row {
@@ -687,30 +688,30 @@ export default defineComponent({
 
 .stats-chart-container {
   flex: 1;
-  min-width: 300px;
+  min-width: 320px;
 }
 
 .chart-controls {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
   justify-content: center;
+  gap: 12px;
+  margin-bottom: 15px;
 }
 
 .chart-controls button {
-  padding: 8px 15px;
+  padding: 8px 18px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
+  background-color: #fff;
   cursor: pointer;
-  background-color: white;
   font-size: 14px;
-  color: #333;
+  transition: all 0.3s ease;
 }
 
 .chart-controls button.active {
-  background-color: #2196f3;
+  background-color: #005ea8;
   color: white;
-  border-color: #2196f3;
+  border-color: #005ea8;
 }
 
 .item-list {
@@ -724,89 +725,80 @@ export default defineComponent({
 }
 
 .item {
-  margin-bottom: 10px;
-  padding: 10px;
-  background-color: white;
-  border-radius: 4px;
-  border: 1px solid #eee;
+  margin-bottom: 12px;
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
 }
 
 .user-card p,
 .category-card p,
 .resource-card p {
-  font-size: 14px;
-  margin-bottom: 5px;
-  color: #333;
+  font-size: 15px;
+  margin-bottom: 6px;
 }
 
 .action-button {
-  background-color: #f44336;
+  background-color: #d32f2f;
   color: white;
   border: none;
-  padding: 8px 15px;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
   font-size: 14px;
-  margin-top: 5px;
 }
 
 .action-button:hover {
-  background-color: #d32f2f;
+  background-color: #b71c1c;
 }
 
 .pagination {
-  margin-top: 15px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
 .pagination-button {
-  padding: 8px 15px;
-  background-color: #2196f3;
+  padding: 8px 16px;
+  background-color: #005ea8;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
   font-size: 14px;
-  margin: 0 5px;
+  cursor: pointer;
 }
 
 .pagination-button:hover {
-  background-color: #1976d2;
+  background-color: #004a86;
 }
 
 .search-filter {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 15px;
   align-items: center;
 }
 
-.search-filter input[type="text"],
+.search-filter input,
 .search-filter select {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #bbb;
   border-radius: 4px;
   font-size: 14px;
 }
 
 .create-button {
-  background-color: #4CAF50;
+  background-color: #007a33;
   color: white;
   border: none;
-  padding: 8px 15px;
+  padding: 10px 18px;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
-  margin-bottom: 10px;
-  transition: background-color 0.3s ease;
 }
 
 .create-button:hover {
-  background-color: #45a049;
+  background-color: #006228;
 }
 
 .modal {
@@ -815,214 +807,99 @@ export default defineComponent({
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background-color: #fefefe;
-  padding: 20px;
+  background-color: white;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  max-width: 500px;
+  width: 90%;
+  max-width: 550px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   position: relative;
 }
 
 .close-button {
-  color: #aaa;
   position: absolute;
   top: 10px;
   right: 15px;
-  font-size: 28px;
-  font-weight: bold;
+  font-size: 24px;
+  color: #666;
   cursor: pointer;
 }
 
-.close-button:hover,
-.close-button:focus {
+.close-button:hover {
   color: black;
-  text-decoration: none;
 }
 
-.modal-content label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.modal-content input[type="text"],
-.modal-content input[type="email"],
-.modal-content select,
+.modal-content input,
 .modal-content textarea,
-.modal-content input[type="file"],
-.modal-content input[type="url"],
-.modal-content input[type="number"] {
+.modal-content select {
   width: 100%;
   padding: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 14px;
-}
-
-.modal-content textarea {
-  height: 80px;
-}
-
-.modal-content .radio-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
-.modal-content .radio-group label {
-  font-weight: normal;
-}
-
-.modal-content .image-preview {
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  padding: 5px;
-  border-radius: 4px;
-}
-
-.modal-content .image-preview img {
-  display: block;
-  max-width: 100%;
-  height: auto;
 }
 
 .submit-button {
-  background-color: #007bff;
+  background-color: #005ea8;
   color: white;
   border: none;
-  padding: 10px 15px;
+  padding: 10px 18px;
   border-radius: 4px;
+  font-size: 15px;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #004a86;
 }
 
 .validate-button {
-  background-color: #28a745;
+  background-color: #007a33;
   color: white;
-  border: none;
   padding: 8px 15px;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
-  margin-top: 5px;
-  transition: background-color 0.3s ease;
+  cursor: pointer;
 }
 
 .validate-button:hover {
-  background-color: #218838;
-}
-
-.user-actions {
-  display: flex;
-  gap: 5px;
-  margin-top: 5px;
+  background-color: #006228;
 }
 
 .suspend-button {
-  background-color: #ffc107;
-  color: #333;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
-}
-
-.suspend-button:hover {
-  background-color: #e0a800;
+  background-color: #ff9800;
+  color: white;
 }
 
 .ban-button {
-  background-color: #dc3545;
+  background-color: #d32f2f;
   color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
-}
-
-.ban-button:hover {
-  background-color: #c82333;
 }
 
 .activate-button {
   background-color: #28a745;
   color: white;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
-}
-
-.activate-button:hover {
-  background-color: #218838;
 }
 
 .status-active {
-  color: green;
-  font-weight: bold;
+  color: #28a745;
+  font-weight: 600;
 }
 
 .status-suspended {
-  color: orange;
-  font-weight: bold;
+  color: #ff9800;
+  font-weight: 600;
 }
 
 .status-banned {
-  color: red;
-  font-weight: bold;
-}
-
-.cancel-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-left: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.cancel-button:hover {
-  background-color: #5a6268;
-}
-
-.export-stats-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-bottom: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.export-stats-button:hover {
-  background-color: #0056b3;
+  color: #d32f2f;
+  font-weight: 600;
 }
 </style>

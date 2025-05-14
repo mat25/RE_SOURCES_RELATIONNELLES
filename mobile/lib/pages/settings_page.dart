@@ -9,6 +9,20 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          color: Colors.deepPurple,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,72 +30,74 @@ class SettingsPage extends StatelessWidget {
         title: const Text('Paramètres'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
+      backgroundColor: Colors.grey[200],
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
         children: [
-          const Text(
-            'Général',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.deepPurple,
+          _buildSectionTitle('Général'),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('Notifications'),
+                  trailing: Switch(
+                    value: true,
+                    onChanged: (value) {},
+                    activeColor: Colors.deepPurple,
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.language),
+                  title: const Text('Langue'),
+                  subtitle: const Text('Français'),
+                  onTap: () => _showSnackBar(context, 'Changement de langue bientôt disponible'),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('Notifications'),
-            trailing: Switch(
-              value: true,
-              onChanged: (value) {
-              },
-              activeColor: Colors.deepPurple,
+          _buildSectionTitle('Confidentialité'),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.lock),
+                  title: const Text('Changer le mot de passe'),
+                  onTap: () => _showSnackBar(context, 'Fonction à venir'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.shield),
+                  title: const Text('Politique de confidentialité'),
+                  onTap: () => _showSnackBar(context, 'Redirection vers la politique de confidentialité'),
+                ),
+              ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Langue'),
-            subtitle: const Text('Français'),
-            onTap: () => _showSnackBar(context, 'Changement de langue bientôt disponible'),
-          ),
-          const Divider(height: 32),
-
-          const Text(
-            'Confidentialité',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.deepPurple,
+          _buildSectionTitle('À propos'),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('À propos de l\'application'),
+              onTap: () => _showSnackBar(context, 'Version 1.0.0 - (RE)Sources Relationnelles'),
             ),
           ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.lock),
-            title: const Text('Changer le mot de passe'),
-            onTap: () => _showSnackBar(context, 'Fonction à venir'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.shield),
-            title: const Text('Politique de confidentialité'),
-            onTap: () => _showSnackBar(context, 'Redirection vers la politique de confidentialité'),
-          ),
-          const Divider(height: 32),
-
-          const Text(
-            'À propos',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.deepPurple,
+          const SizedBox(height: 30),
+          const Center(
+            child: Text(
+              "Merci d'utiliser notre app !",
+              style: TextStyle(color: Colors.grey),
             ),
           ),
-          const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('À propos de l\'application'),
-            onTap: () => _showSnackBar(context, 'Version 1.0.0 - (RE)Sources Relationnelles'),
-          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

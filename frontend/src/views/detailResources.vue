@@ -1,7 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-gray-200 via-gray-300 to-gray-400 p-6">
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-6">
     <n-card size="large" class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-8">
-      <!-- Header avec bouton favoris -->
       <template #header>
         <div class="flex items-center justify-between">
           <div class="flex flex-col">
@@ -18,7 +17,6 @@
         </div>
       </template>
 
-      <!-- Image de la ressource -->
       <n-image
           width="100%"
           height="300"
@@ -28,12 +26,10 @@
           object-fit="cover"
       />
 
-      <!-- Description -->
       <n-text class="text-lg text-gray-800 mb-4">
         {{ resource.description }}
       </n-text>
 
-      <!-- Section vidéo -->
       <div v-if="resource.videoUrl" class="mb-6">
         <n-button
             tag="a"
@@ -47,7 +43,6 @@
         </n-button>
       </div>
 
-      <!-- Section d'action -->
       <div class="flex flex-wrap gap-4">
         <n-button
             :type="isWatched ? 'success' : 'default'"
@@ -65,33 +60,27 @@
           {{ isPrivate ? 'Privée' : 'Publique' }}
         </n-button>
 
-        <!-- Bouton de partage -->
         <n-button @click="toggleShareModal" type="info" class="transition-all duration-300 transform hover:scale-105">
           Partager
         </n-button>
       </div>
 
-      <!-- Modal de partage (popup) -->
       <div v-if="isShareModalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div class="bg-white p-8 rounded-lg shadow-xl w-80 text-center">
           <h2 class="text-xl font-semibold mb-4">Partager cette ressource</h2>
           <div class="flex justify-center gap-6 mb-4">
-            <!-- Facebook -->
             <n-button
                 tag="a"
                 target="_blank"
                 :href="'https://www.facebook.com/sharer/sharer.php?u=' + shareUrl"
-                type="success"
+                type="primary"
                 class="rounded-full p-4"
             >
               <n-icon size="24" class="text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M13 2H11V7H7V9H11V13H9V17H13V13H15V9H13V2Z"/>
-                </svg>
-              </n-icon>
-            </n-button>
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M279.1 288c9.4 0 17-7.6 17-17v-49.1c0-9.4-7.6-17-17-17H256v-32c0-35.3-28.7-64-64-64h-32C124.7 112 96 140.7 96 176v32H73c-9.4 0-17 7.6-17 17v49.1c0 9.4 7.6 17 17 17h23v96c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32V288h23.1zM32 32C14.3 32 0 46.3 0 64v384c0 17.7 14.3 32 32 32H288c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32H32z"/></svg>
+                      </n-icon>
+                    </n-button>
 
-            <!-- Twitter -->
             <n-button
                 tag="a"
                 target="_blank"
@@ -100,13 +89,10 @@
                 class="rounded-full p-4"
             >
               <n-icon size="24" class="text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23 3a10.9 10.9 0 0 1-3.14.87A5.47 5.47 0 0 0 22.47 2c-2.11 1.24-3.33 2.02-5.13 2.49A5.47 5.47 0 0 0 16.6 1C14.35 1 12.5 2.91 12.5 4.5c0 .39.07.76.19 1.11C7.69 5.98 4.07 4.07 2 1.2A4.54 4.54 0 0 0 1 3c0 1.57.8 2.95 2 3.78A5.47 5.47 0 0 1 1 8v.08A5.47 5.47 0 0 0 3.1 12.9a5.47 5.47 0 0 1-2-.55v.05c0 2.11 1.51 3.88 3.51 4.3a5.49 5.49 0 0 1-2.44.1c.7 2.17 2.69 3.77 5.06 3.77a10.93 10.93 0 0 0 11-11V3z"/>
-                </svg>
-              </n-icon>
-            </n-button>
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.4 151.7c.3 4.5 .3 9 0 13.5c0 149.1-114.1 321.1-321.1 321.1-63.1 0-121.3-18.8-171.5-51.7c9.7 1.1 19.5 1.7 29.6 1.7 56.6 0 107.9-19.1 148.7-51.1-8.8-.2-16.1-3-22.8-7.7c8.1 1.5 16.7 2.3 25.5 2.3 4.9 0 9.6-.4 14.1-1.1-8.4-1.7-14.3-5.7-17.4-10.7c4.1.8 8.5 1.3 13 1.3 2.6 0 5.1-.2 7.5-.6-8.1-1.6-14.3-8.8-14.3-17.6v-.2c2.8 1.6 6.1 2.5 9.7 2.5 1.9 0 3.7-.2 5.5-.5-8.4-1.6-14.3-8.6-14.3-17.4 0-1.9.5-3.7 1.4-5.2 10.1 12.6 25.5 20.1 42.1 20.8-12.2-.4-23.3-3.7-32-9.5c0-2.1.5-4.1 1.4-5.9 16.7 21.4 42 34 70.3 35.2-3.3-.8-6.8-1.3-10.4-1.3-6.1 0-11.6.4-16.8 1.1 23.4 0 44.3-7.9 60.1-21.4-8-1.6-14.8-4-20.6-7.2z"/></svg>
+                      </n-icon>
+                    </n-button>
 
-            <!-- LinkedIn -->
             <n-button
                 tag="a"
                 target="_blank"
@@ -115,11 +101,9 @@
                 class="rounded-full p-4"
             >
               <n-icon size="24" class="text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.98 3.5C4.98 2.12 5.98 1 7.2 1c1.22 0 2.22 1.12 2.22 2.5 0 1.38-1 2.5-2.22 2.5-1.22 0-2.22-1.12-2.22-2.5zm-.24 7.5h4.47V9.75h-2.73V7.38h2.73V5.98C9.47 4.59 8.22 4 7.37 4c-.86 0-1.61.2-2.28.61-.35-.13-.68-.3-.98-.48-1.47-.91-2.76 1.13-2.76 3.04v3.13h-2.7v3.56h2.7v10.72h4.46V11.5z"/>
-                </svg>
-              </n-icon>
-            </n-button>
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M416 32H32C14.3 32 0 46.3 0 64v384c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32zM137.9 320h-30.6v128h30.6v-128zm-15.3-97.1c10.3 0 18.6-8.3 18.6-18.6 0-10.3-8.3-18.6-18.6-18.6-10.3 0-18.6 8.3-18.6 18.6 0 10.3 8.3 18.6 18.6 18.6zM272 320h-30.6v128h30.6v-68.8c0-39.2 19.7-58.4 57.1-58.4 41.6 0 57.1 30.2 57.1 58.4V448h30.6V320c0-67.4-38.1-100.4-92.8-100.4-50.5 0-79.4 32.8-79.4 32.8z"/></svg>
+                      </n-icon>
+                    </n-button>
           </div>
           <n-button @click="toggleShareModal" type="error" class="w-full">
             Fermer
@@ -127,7 +111,6 @@
         </div>
       </div>
 
-      <!-- Espace commentaire -->
       <div class="mt-8">
         <h3 class="text-2xl font-semibold text-gray-900 mb-4">Ajouter un commentaire</h3>
         <n-input
@@ -142,13 +125,11 @@
         </div>
       </div>
 
-      <!-- Liste des commentaires -->
       <div class="mt-6">
         <h3 class="text-2xl font-semibold text-gray-900 mb-4">Commentaires</h3>
         <div v-for="(comment, index) in comments" :key="index" class="p-4 bg-gray-50 rounded-lg shadow-sm mb-4">
           <p class="text-lg text-gray-700">{{ comment.text }}</p>
 
-          <!-- Si l'utilisateur est un modérateur, afficher le bouton de suppression -->
           <div v-if="isModerator" class="flex justify-end mt-2">
             <n-button @click="deleteComment(index)" type="error" size="small">Supprimer</n-button>
           </div>
@@ -165,7 +146,7 @@ export default {
       resource: {
         title: 'Exemple de ressource',
         description: 'Voici une ressource intéressante que vous pouvez partager et commenter.',
-        image: '/m3gtr.webp',
+        image: 'https://images.unsplash.com/photo-1541414434078-61d904b17498?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90b3wtfHx8fHx8Mnx8fHw',
         videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       },
       isFavorite: false,
