@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../repositories/user_repository.dart';
 import '../core/api/api_client.dart';
+import '../providers/session_provider.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -21,11 +23,25 @@ class _RegisterFormState extends State<RegisterForm> {
 
   final userRepo = UserRepository(ApiClient());
 
+  bool _isEmailValid(String email) {
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+  }
+
   Future<void> _register() async {
+    final session = Provider.of<SessionProvider>(context, listen: false);
+
+    if ([prenom, nom, pseudo, email, password, confirmPassword].any((v) => v.trim().isEmpty)) {
+      _showSnackBar('Tous les champs sont requis.');
+      return;
+    }
+
+    if (!_isEmailValid(email)) {
+      _showSnackBar('Email invalide.');
+      return;
+    }
+
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Les mots de passe ne correspondent pas.')),
-      );
+      _showSnackBar('Les mots de passe ne correspondent pas.');
       return;
     }
 
@@ -33,19 +49,27 @@ class _RegisterFormState extends State<RegisterForm> {
       await userRepo.registerUser(
         firstName: prenom,
         lastName: nom,
-        pseudo: pseudo,
+        username: pseudo,
         email: email,
         password: password,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Compte créé avec succès !')),
-      );
+      _showSnackBar('Compte créé avec succès ! Connexion...');
+
+      session.username = pseudo;
+      session.password = password;
+
+      await session.login();
+
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
-      );
+      _showSnackBar('Erreur lors de l’inscription : $e');
     }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override

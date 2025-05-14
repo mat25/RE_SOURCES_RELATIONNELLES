@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/home_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 
@@ -11,6 +12,19 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  void _handleLogin(SessionProvider session) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await session.login();
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +52,12 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 24),
               TextField(
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email),
-                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.alternate_email),
+                  labelText: 'Pseudo',
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (value) => session.email = value,
+                keyboardType: TextInputType.emailAddress,
+                onChanged: (value) => session.username = value,
               ),
               const SizedBox(height: 16),
               TextField(
@@ -67,7 +82,8 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                  },
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: TextStyle(color: Colors.deepPurple),
@@ -79,16 +95,19 @@ class _LoginFormState extends State<LoginForm> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
-                  icon: const Icon(
-                    Icons.login,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Se connecter',
-                    style: TextStyle(
-                      fontSize: 16,
+                  icon: _isLoading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
                       color: Colors.white,
+                      strokeWidth: 2,
                     ),
+                  )
+                      : const Icon(Icons.login, color: Colors.white),
+                  label: Text(
+                    _isLoading ? 'Connexion...' : 'Se connecter',
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
@@ -96,7 +115,7 @@ class _LoginFormState extends State<LoginForm> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () => session.login(),
+                  onPressed: _isLoading ? null : () => _handleLogin(session),
                 ),
               ),
             ],
