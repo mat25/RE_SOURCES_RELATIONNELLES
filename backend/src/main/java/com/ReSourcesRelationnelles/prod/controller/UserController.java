@@ -2,72 +2,81 @@ package com.ReSourcesRelationnelles.prod.controller;
 
 import java.util.List;
 
-import com.ReSourcesRelationnelles.prod.dto.RegisterDTO;
-import com.ReSourcesRelationnelles.prod.dto.UpdateUserDTO;
-import com.ReSourcesRelationnelles.prod.dto.UserDTO;
+import com.ReSourcesRelationnelles.prod.dto.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import com.ReSourcesRelationnelles.prod.service.UserService;
-import com.ReSourcesRelationnelles.prod.dto.LoginDTO;
 
 @RestController
 public class UserController {
 
     private final UserService userService;
 
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    @GetMapping("/users/{id}")
-    public ResponseEntity<Object> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
-    }
-
-    @GetMapping("/users/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        return userService.getCurrentUser(authentication);
-    }
-
     @PostMapping("/register")
-    public ResponseEntity<Object> createUser(@RequestBody RegisterDTO request) {
-        return userService.createUser(request);
+    public ResponseEntity<UserDTO> createUser(@RequestBody RegisterDTO request) {
+        UserDTO createdUser = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> loginUser(@RequestBody LoginDTO request) {
-        return userService.loginUser(request);
+    public ResponseEntity<TokenDTO> loginUser(@RequestBody LoginDTO request) {
+        TokenDTO token = userService.loginUser(request);
+        return ResponseEntity.ok(token);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    @PatchMapping("/users/{id}")
-    public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
-        return userService.updateUser(id, request);
+    @GetMapping("/users/me")
+    public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
+        UserDTO user = userService.getCurrentUser(authentication);
+        return ResponseEntity.ok(user);
     }
 
+    @GetMapping("/users/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
-        return userService.deleteUser(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 
     @PatchMapping("/users/me")
-    public ResponseEntity<Object> updateCurrentUser(@RequestBody UpdateUserDTO request, Authentication authentication) {
-        return userService.updateCurrentUser(authentication, request);
+    public ResponseEntity<UserDTO> updateCurrentUser(Authentication authentication, @RequestBody UpdateUserDTO request) {
+        UserDTO updatedUser = userService.updateCurrentUser(authentication, request);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PatchMapping("/users/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
+        UserDTO updatedUser = userService.updateUser(id, request);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/users/me")
-    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
-        return userService.deleteCurrentUser(authentication);
+    public ResponseEntity<MessageDTO> deleteCurrentUser(Authentication authentication) {
+        MessageDTO message = userService.deleteCurrentUser(authentication);
+        return ResponseEntity.ok(message);
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<MessageDTO> deleteUser(@PathVariable Long id) {
+        MessageDTO message = userService.deleteUser(id);
+        return ResponseEntity.ok(message);
     }
 }

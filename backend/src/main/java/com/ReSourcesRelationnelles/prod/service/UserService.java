@@ -3,6 +3,8 @@ package com.ReSourcesRelationnelles.prod.service;
 import com.ReSourcesRelationnelles.prod.dto.*;
 import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
+import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
+import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.security.JwtUtil;
 import com.ReSourcesRelationnelles.prod.utility.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,24 +38,30 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    public UserDTO createUser(RegisterDTO request) {
+        if (request.getName() == null || request.getName().isBlank())
+            throw new BadRequestException("Le nom est requis.");
 
-    public ResponseEntity<Object> createUser(RegisterDTO request) {
+        if (request.getFirstName() == null || request.getFirstName().isBlank())
+            throw new BadRequestException("Le prénom est requis.");
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorDTO("L'email est déjà utilisé."));
-        }
+        if (request.getUsername() == null || request.getUsername().isBlank())
+            throw new BadRequestException("Le username est requis.");
 
+        if (request.getEmail() == null || !request.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"))
+            throw new BadRequestException("Format d'email invalide.");
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorDTO("Le username est déjà utilisé."));
-        }
+        if (request.getPassword() == null || request.getPassword().length() < 8)
+            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
 
-        Role role = roleService.findByName(RoleEnum.USER).orElseThrow(() -> new RuntimeException("Role USER not found"));
+        if (userRepository.existsByEmail(request.getEmail()))
+            throw new BadRequestException("L'email est déjà utilisé.");
+
+        if (userRepository.existsByUsername(request.getUsername()))
+            throw new BadRequestException("Le username est déjà utilisé.");
+
+        Role role = roleService.findByName(RoleEnum.USER)
+                .orElseThrow(() -> new NotFoundException("Rôle USER introuvable."));
 
         String hashedPassword = PasswordHasher.hash(request.getPassword());
 
@@ -67,15 +74,10 @@ public class UserService {
                 role
         );
 
-        User savedUser = userRepository.save(user);
-
-        UserDTO userDTO = new UserDTO(savedUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+        return new UserDTO(userRepository.save(user));
     }
 
-    public ResponseEntity<Object> loginUser(LoginDTO request) {
-
+    public TokenDTO loginUser(LoginDTO request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -87,127 +89,84 @@ public class UserService {
 
         User user = userRepository.findByUsername(userDetails.getUsername());
 
-        if (!user.getUsername().equals(request.getUsername())) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur introuvable après authentification."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur introuvable après authentification.");
 
         String role = user.getRole().getName().name();
+        String token = jwtUtils.generateToken(user.getUsername(), role);
 
-        String token = jwtUtils.generateToken(user.getUsername(),role);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new TokenDTO(token, user.getId()));
+        return new TokenDTO(token, user.getId());
     }
 
-    public ResponseEntity<Object> getUserById(Long id) {
-        Optional<User> user = userRepository.findById(id);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
-        }
-
-        UserDTO userDTO = new UserDTO(user.get());
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    public UserDTO getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(UserDTO::new)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
     }
 
     public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-
-        List<UserDTO> userDTOList = new ArrayList<>();
-
-        for (User user : users) {
-            userDTOList.add(new UserDTO(user));
-        }
-
-        return userDTOList;
+        return userRepository.findAll().stream()
+                .map(UserDTO::new)
+                .toList();
     }
 
-    public ResponseEntity<Object> updateUser(Long id, UpdateUserDTO request) {
-        Optional<User> optionalUser = userRepository.findById(id);
-
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
-        }
-
-        User user = optionalUser.get();
+    public UserDTO updateUser(Long id, UpdateUserDTO request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
         if (request.getName() != null && !request.getName().isBlank()) {
             user.setName(request.getName());
         }
-
-        if (request.getUsername() != null && !request.getUsername().isBlank()) {
-            user.setUsername(request.getUsername());
-        }
-
         if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
             user.setFirstName(request.getFirstName());
         }
-
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            user.setUsername(request.getUsername());
+        }
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             user.setEmail(request.getEmail());
         }
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            String hashedPassword = passwordEncoder.encode(request.getPassword());
-            user.setPassword(hashedPassword);
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        User updatedUser = userRepository.save(user);
-
-        UserDTO userDTO = new UserDTO(updatedUser);
-
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+        return new UserDTO(userRepository.save(user));
     }
 
-    public ResponseEntity<Object> getCurrentUser(Authentication authentication) {
+    public UserDTO getCurrentUser(Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName());
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
 
-        UserDTO userDTO = new UserDTO(user);
-
-        return ResponseEntity.ok(userDTO);
+        return new UserDTO(user);
     }
 
-    public ResponseEntity<Object> updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
+    public UserDTO updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
         User user = userRepository.findByUsername(authentication.getName());
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
 
         return updateUser(user.getId(), request);
     }
 
-    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+    public MessageDTO deleteCurrentUser(Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName());
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
 
         userRepository.delete(user);
-
-        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
+        return new MessageDTO("Utilisateur supprimé avec succès.");
     }
 
-    public ResponseEntity<Object> deleteUser(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
+    public MessageDTO deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
-        }
-
-        User user = optionalUser.get();
         userRepository.delete(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
+        return new MessageDTO("Utilisateur supprimé avec succès.");
     }
 }
