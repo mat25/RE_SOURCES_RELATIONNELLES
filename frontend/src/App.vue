@@ -25,4 +25,6 @@ main {
   width: 100%;
   min-height: 100vh; 
   height: auto;
-  background-color: rgba(13, 52, 1
+  background-color: rgba(13, 52, 158, 0.15);
+}
+</style>
