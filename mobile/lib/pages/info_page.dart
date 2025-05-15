@@ -5,7 +5,7 @@ import '../providers/session_provider.dart';
 class InfoPage extends StatelessWidget {
   const InfoPage({Key? key}) : super(key: key);
 
-  void _showEditDialog(BuildContext context, String fieldName, String currentValue) {
+  void _showEditDialog(BuildContext context, String fieldName, String currentValue, String fieldKey) {
     final TextEditingController controller = TextEditingController(text: currentValue);
     final session = Provider.of<SessionProvider>(context, listen: false);
 
@@ -27,50 +27,32 @@ class InfoPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-            label: const Text('Enregistrer', style: TextStyle(color: Colors.white)),
+            label: const Text('Enregistrer'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               final newValue = controller.text.trim();
-              if (newValue.isNotEmpty && newValue != currentValue) {
-                String apiField = _getApiFieldName(fieldName);
-                try {
-                  await session.updateProfileField(apiField, newValue);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('$fieldName mis à jour avec succès'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erreur : $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
               Navigator.pop(context);
+
+              if (newValue.isEmpty || newValue == currentValue) return;
+
+              final success = await session.updateProfileField(fieldKey, newValue);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(success
+                      ? '$fieldName mis à jour avec succès'
+                      : 'Erreur lors de la mise à jour de $fieldName'),
+                  backgroundColor: success ? Colors.green : Colors.red,
+                ),
+              );
             },
           ),
         ],
       ),
     );
-  }
-
-  String _getApiFieldName(String label) {
-    switch (label) {
-      case 'Nom':
-        return 'name';
-      case 'Prénom':
-        return 'firstName';
-      case 'Email':
-        return 'email';
-      case 'Nom d’utilisateur':
-        return 'username';
-      default:
-        return label.toLowerCase();
-    }
   }
 
   void _showPasswordChangeDialog(BuildContext context) {
@@ -112,7 +94,7 @@ class InfoPage extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
             child: const Text('Modifier', style: TextStyle(color: Colors.white)),
             onPressed: () {
-              // TODO: appel API pour changer le mot de passe
+              // TODO: logique de changement de mot de passe
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -143,7 +125,6 @@ class InfoPage extends StatelessWidget {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
             onPressed: () {
-              // TODO: appel API pour supprimer le compte
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -151,6 +132,7 @@ class InfoPage extends StatelessWidget {
                   backgroundColor: Colors.red,
                 ),
               );
+              // TODO: appel API pour suppression + déconnexion
             },
           ),
         ],
@@ -158,24 +140,20 @@ class InfoPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required String value,
-        bool editable = true,
-        VoidCallback? onEdit,
-      }) {
+  Widget _buildInfoTile(BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String value,
+    required String fieldKey,
+  }) {
     return ListTile(
       leading: Icon(icon, color: Colors.deepPurple),
       title: Text(title),
       subtitle: Text(value.isNotEmpty ? value : 'Non précisé'),
-      trailing: editable
-          ? IconButton(
+      trailing: IconButton(
         icon: const Icon(Icons.edit, color: Colors.deepPurple),
-        onPressed: onEdit,
-      )
-          : null,
+        onPressed: () => _showEditDialog(context, title, value, fieldKey),
+      ),
     );
   }
 
@@ -206,11 +184,17 @@ class InfoPage extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     user.username ?? 'Nom d’utilisateur',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     user.email ?? '',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -235,7 +219,7 @@ class InfoPage extends StatelessWidget {
                   icon: Icons.account_circle,
                   title: 'Nom d’utilisateur',
                   value: user.username ?? '',
-                  onEdit: () => _showEditDialog(context, 'Nom d’utilisateur', user.username ?? ''),
+                  fieldKey: 'username',
                 ),
                 const Divider(height: 1),
                 _buildInfoTile(
@@ -243,7 +227,7 @@ class InfoPage extends StatelessWidget {
                   icon: Icons.person,
                   title: 'Nom',
                   value: user.name ?? '',
-                  onEdit: () => _showEditDialog(context, 'Nom', user.name ?? ''),
+                  fieldKey: 'name',
                 ),
                 const Divider(height: 1),
                 _buildInfoTile(
@@ -251,7 +235,7 @@ class InfoPage extends StatelessWidget {
                   icon: Icons.person_outline,
                   title: 'Prénom',
                   value: user.firstName ?? '',
-                  onEdit: () => _showEditDialog(context, 'Prénom', user.firstName ?? ''),
+                  fieldKey: 'firstName',
                 ),
                 const Divider(height: 1),
                 _buildInfoTile(
@@ -259,15 +243,17 @@ class InfoPage extends StatelessWidget {
                   icon: Icons.email,
                   title: 'Email',
                   value: user.email ?? '',
-                  onEdit: () => _showEditDialog(context, 'Email', user.email ?? ''),
+                  fieldKey: 'email',
                 ),
                 const Divider(height: 1),
-                _buildInfoTile(
-                  context,
-                  icon: Icons.lock,
-                  title: 'Mot de passe',
-                  value: '••••••••',
-                  onEdit: () => _showPasswordChangeDialog(context),
+                ListTile(
+                  leading: const Icon(Icons.lock, color: Colors.deepPurple),
+                  title: const Text('Mot de passe'),
+                  subtitle: const Text('••••••••'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.deepPurple),
+                    onPressed: () => _showPasswordChangeDialog(context),
+                  ),
                 ),
               ],
             ),

@@ -13,7 +13,10 @@ class SessionProvider with ChangeNotifier {
   String? password;
 
   String? _loginMessage;
+  bool _isLoginError = false;
+
   String? get loginMessage => _loginMessage;
+  bool get isLoginError => _isLoginError;
 
   User? get user => _user;
   String? get token => _token;
@@ -37,6 +40,7 @@ class SessionProvider with ChangeNotifier {
     if (username == null || username!.trim().isEmpty ||
         password == null || password!.trim().isEmpty) {
       _loginMessage = "Veuillez remplir tous les champs.";
+      _isLoginError = true;
       notifyListeners();
       return;
     }
@@ -51,6 +55,7 @@ class SessionProvider with ChangeNotifier {
       await loadCurrentUser();
 
       _loginMessage = "Connexion réussie !";
+      _isLoginError = false;
       notifyListeners();
 
       Future.delayed(const Duration(seconds: 3), () {
@@ -60,6 +65,7 @@ class SessionProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Erreur de connexion : $e');
       _loginMessage = "Identifiants incorrects";
+      _isLoginError = true;
       notifyListeners();
     }
   }
@@ -75,20 +81,32 @@ class SessionProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProfileField(String field, String newValue) async {
-    if (_token == null) return;
+  Future<bool> updateProfileField(String field, String newValue) async {
+    if (_token == null || _user == null) return false;
 
     try {
+      final bool isUsernameChange = field == 'username';
+      final oldUsername = _user!.username;
+
       final updatedUser = await _userRepository.updateUser(_token!, {field: newValue});
       _user = updatedUser;
+
+      if (isUsernameChange && password != null) {
+        username = newValue;
+        await login();
+      }
+
       notifyListeners();
+      return true;
     } catch (e) {
       debugPrint('Erreur mise à jour profil : $e');
+      return false;
     }
   }
 
   void clearLoginMessage() {
     _loginMessage = null;
+    _isLoginError = false;
     notifyListeners();
   }
 
@@ -99,5 +117,4 @@ class SessionProvider with ChangeNotifier {
     password = null;
     notifyListeners();
   }
-
 }

@@ -32,12 +32,12 @@ class _RessourcesPageState extends State<RessourcesPage> {
     });
   }
 
-  void _showLoginSnackbar(BuildContext context, String message) {
+  void _showLoginSnackbar(BuildContext context, String message, bool isError) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.green,
+          backgroundColor: isError ? Colors.red : Colors.green,
           duration: const Duration(seconds: 3),
         ),
       );
@@ -63,7 +63,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
     final session = Provider.of<SessionProvider>(context);
 
     if (session.loginMessage != null) {
-      _showLoginSnackbar(context, session.loginMessage!);
+      _showLoginSnackbar(context, session.loginMessage!, session.isLoginError);
       session.clearLoginMessage();
     }
 
@@ -143,7 +143,8 @@ class _RessourcesPageState extends State<RessourcesPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => RessourceDetailPage(ressource: ressource),
+                                builder: (context) =>
+                                    RessourceDetailPage(ressource: ressource),
                               ),
                             );
                           },
