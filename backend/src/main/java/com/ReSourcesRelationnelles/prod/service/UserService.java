@@ -1,13 +1,18 @@
 package com.ReSourcesRelationnelles.prod.service;
 
 import com.ReSourcesRelationnelles.prod.dto.*;
+import com.ReSourcesRelationnelles.prod.dto.user.LoginDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.RegisterDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.UpdateUserDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
 import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
+import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
+import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.security.JwtUtil;
-import com.ReSourcesRelationnelles.prod.utility.PasswordHasher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,15 +22,13 @@ import org.springframework.stereotype.Service;
 
 import com.ReSourcesRelationnelles.prod.entity.User;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -37,26 +40,41 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
-    public ResponseEntity<Object> createUser(RegisterDTO request) {
+    public UserDTO createUser(RegisterDTO request) {
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new BadRequestException("Le nom est requis.");
+        }
+
+        if (request.getFirstName() == null || request.getFirstName().isBlank()) {
+            throw new BadRequestException("Le prénom est requis.");
+        }
+
+        if (request.getUsername() == null || request.getUsername().isBlank()) {
+            throw new BadRequestException("Le username est requis.");
+        }
+
+        if (request.getEmail() == null || !request.getEmail().matches(EMAIL_REGEX)) {
+            throw new BadRequestException("Format d'email invalide.");
+        }
+
+        if (request.getPassword() == null || request.getPassword().length() < 8) {
+            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
+        }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorDTO("L'email est déjà utilisé."));
+            throw new BadRequestException("L'email est déjà utilisé.");
         }
-
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorDTO("Le username est déjà utilisé."));
+            throw new BadRequestException("Le username est déjà utilisé.");
         }
 
-        Role role = roleService.findByName(RoleEnum.USER).orElseThrow(() -> new RuntimeException("Role USER not found"));
+        Role role = roleService.findByName(RoleEnum.USER)
+                .orElseThrow(() -> new NotFoundException("Rôle USER introuvable."));
 
-        String hashedPassword = PasswordHasher.hash(request.getPassword());
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User(
                 request.getName(),
@@ -67,14 +85,21 @@ public class UserService {
                 role
         );
 
-        User savedUser = userRepository.save(user);
-
-        UserDTO userDTO = new UserDTO(savedUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+        log.info("Création d'un nouvel utilisateur : {}", request.getUsername());
+        return new UserDTO(userRepository.save(user));
     }
 
-    public ResponseEntity<Object> loginUser(LoginDTO request) {
+    public TokenDTO loginUser(LoginDTO request) {
+
+        if (request.getUsername() == null || request.getUsername().isBlank()) {
+            throw new BadRequestException("Le username est requis.");
+        }
+
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new BadRequestException("Le mot de passe est requis.");
+        }
+
+        log.info("Tentative de connexion pour l'utilisateur : {}", request.getUsername());
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -87,127 +112,147 @@ public class UserService {
 
         User user = userRepository.findByUsername(userDetails.getUsername());
 
-        if (!user.getUsername().equals(request.getUsername())) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur introuvable après authentification."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur introuvable.");
 
         String role = user.getRole().getName().name();
+        String token = jwtUtils.generateToken(user.getUsername(), role);
 
-        String token = jwtUtils.generateToken(user.getUsername(),role);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new TokenDTO(token, user.getId()));
+        return new TokenDTO(token, user.getId());
     }
 
-    public ResponseEntity<Object> getUserById(Long id) {
-        Optional<User> user = userRepository.findById(id);
+    public UserDTO getUserById(Long id) {
+        log.info("Récupération de l'utilisateur avec l'ID : {}", id);
 
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur avec l'ID '" + id + "' n'existe pas."));
+
+        Role role = user.getRole();
+        if (role == null || role.getName() != RoleEnum.USER) {
+            throw new BadRequestException("Seuls les utilisateurs avec le rôle USER peuvent être consultés.");
         }
 
-        UserDTO userDTO = new UserDTO(user.get());
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+        return new UserDTO(user);
     }
 
     public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-
-        List<UserDTO> userDTOList = new ArrayList<>();
-
-        for (User user : users) {
-            userDTOList.add(new UserDTO(user));
-        }
-
-        return userDTOList;
+        log.info("Récupération de la liste complète des utilisateurs");
+        return userRepository.findAll().stream()
+                .map(UserDTO::new)
+                .toList();
     }
 
-    public ResponseEntity<Object> updateUser(Long id, UpdateUserDTO request) {
-        Optional<User> optionalUser = userRepository.findById(id);
+    public UserDTO updateUser(Long id, UpdateUserDTO request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
+        Role role = user.getRole();
+
+        if (role == null || role.getName() != RoleEnum.USER) {
+            throw new BadRequestException("Seuls les utilisateurs avec le rôle USER peuvent être modifié.");
         }
-
-        User user = optionalUser.get();
 
         if (request.getName() != null && !request.getName().isBlank()) {
             user.setName(request.getName());
         }
-
-        if (request.getUsername() != null && !request.getUsername().isBlank()) {
-            user.setUsername(request.getUsername());
-        }
-
         if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
             user.setFirstName(request.getFirstName());
         }
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
 
+            if (userRepository.existsByUsername(request.getUsername()) && !user.getUsername().equals(request.getUsername())) {
+                throw new BadRequestException("Le username est déjà utilisé.");
+            }
+            user.setUsername(request.getUsername());
+        }
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
+
+            if (!request.getEmail().matches(EMAIL_REGEX)) {
+                throw new BadRequestException("Format d'email invalide.");
+            }
+
+            if (userRepository.existsByEmail(request.getEmail()) && !user.getEmail().equals(request.getEmail())) {
+                throw new BadRequestException("L'email est déjà utilisé.");
+            }
             user.setEmail(request.getEmail());
         }
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            String hashedPassword = passwordEncoder.encode(request.getPassword());
-            user.setPassword(hashedPassword);
+
+            if (request.getPassword().length() < 8) {
+                throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
+            }
+
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        User updatedUser = userRepository.save(user);
+        log.info("Mise à jour de l'utilisateur avec l'ID : {}", id);
 
-        UserDTO userDTO = new UserDTO(updatedUser);
-
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+        return new UserDTO(userRepository.save(user));
     }
 
-    public ResponseEntity<Object> getCurrentUser(Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName());
+    public UserDTO getCurrentUser(Authentication authentication) {
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new BadRequestException("Utilisateur non authentifié.");
         }
 
-        UserDTO userDTO = new UserDTO(user);
+        User user = userRepository.findByUsername(authentication.getName());
 
-        return ResponseEntity.ok(userDTO);
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
+
+        return new UserDTO(user);
     }
 
-    public ResponseEntity<Object> updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
+    public UserDTO updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
+
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new BadRequestException("Utilisateur non authentifié.");
+        }
+
         User user = userRepository.findByUsername(authentication.getName());
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
+
+        log.info("Mise à jour du compte de l'utilisateur connecté : {}", authentication.getName());
 
         return updateUser(user.getId(), request);
     }
 
-    public ResponseEntity<Object> deleteCurrentUser(Authentication authentication) {
+    public MessageDTO deleteCurrentUser(Authentication authentication) {
+
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new BadRequestException("Utilisateur non authentifié.");
+        }
+
         User user = userRepository.findByUsername(authentication.getName());
 
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("Utilisateur non trouvé."));
-        }
+        if (user == null)
+            throw new NotFoundException("Utilisateur non trouvé.");
 
         userRepository.delete(user);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
+        log.warn("Suppression du compte de l'utilisateur connecté : {}", authentication.getName());
+
+        return new MessageDTO("Utilisateur supprimé avec succès.");
     }
 
-    public ResponseEntity<Object> deleteUser(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
+    public MessageDTO deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorDTO("L'utilisateur '" + id + "' n'existe pas."));
+        Role role = user.getRole();
+
+        if (role == null || role.getName() != RoleEnum.USER) {
+            throw new BadRequestException("Seuls les utilisateurs avec le rôle USER peuvent être supprimés.");
         }
 
-        User user = optionalUser.get();
         userRepository.delete(user);
-        return ResponseEntity.status(HttpStatus.OK).body(new ErrorDTO("Utilisateur supprimé avec succès."));
+
+        log.warn("Suppression de l'utilisateur avec l'ID : {}", id);
+
+        return new MessageDTO("Utilisateur supprimé avec succès.");
     }
 }

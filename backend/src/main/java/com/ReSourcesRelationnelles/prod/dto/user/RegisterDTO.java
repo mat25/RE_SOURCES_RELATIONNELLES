@@ -1,4 +1,4 @@
-package com.ReSourcesRelationnelles.prod.dto;
+package com.ReSourcesRelationnelles.prod.dto.user;
 
 public class RegisterDTO {
     private String name;
