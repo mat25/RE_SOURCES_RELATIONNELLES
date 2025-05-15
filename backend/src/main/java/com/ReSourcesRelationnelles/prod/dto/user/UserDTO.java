@@ -1,4 +1,4 @@
-package com.ReSourcesRelationnelles.prod.dto;
+package com.ReSourcesRelationnelles.prod.dto.user;
 
 import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.User;

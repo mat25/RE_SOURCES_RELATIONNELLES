@@ -3,6 +3,10 @@ package com.ReSourcesRelationnelles.prod.controller;
 import java.util.List;
 
 import com.ReSourcesRelationnelles.prod.dto.*;
+import com.ReSourcesRelationnelles.prod.dto.user.LoginDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.RegisterDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.UpdateUserDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
