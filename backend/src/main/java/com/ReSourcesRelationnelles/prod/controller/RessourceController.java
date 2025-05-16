@@ -19,5 +19,6 @@ public class RessourceController {
     public ResponseEntity<List<RessourceDTO>> getAllRessources() {
         List<RessourceDTO> ressources = ressourceService.getAllRessources();
         return ResponseEntity.ok(ressources);
+
     }
 }
