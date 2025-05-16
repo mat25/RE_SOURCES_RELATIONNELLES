@@ -1,4 +1,4 @@
-package com.ReSourcesRelationnelles.prod.dto.ressource;
+package com.ReSourcesRelationnelles.prod.dto.resource;
 
 public class CreateResourceDTO {
     private String title;

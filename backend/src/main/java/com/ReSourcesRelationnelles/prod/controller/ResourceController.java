@@ -1,7 +1,7 @@
 package com.ReSourcesRelationnelles.prod.controller;
 
-import com.ReSourcesRelationnelles.prod.dto.ressource.CreateResourceDTO;
-import com.ReSourcesRelationnelles.prod.dto.ressource.ResourceDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
 import com.ReSourcesRelationnelles.prod.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +21,7 @@ public class ResourceController {
         List<ResourceDTO> resources = resourceService.getAllResources(authentication);
         return ResponseEntity.ok(resources);
     }
+
 
     @PostMapping("/resources")
     public ResponseEntity<ResourceDTO> createResource(@RequestBody CreateResourceDTO request, Authentication authentication) {

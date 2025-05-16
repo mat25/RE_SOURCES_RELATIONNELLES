@@ -1,7 +1,7 @@
 package com.ReSourcesRelationnelles.prod.service;
 
-import com.ReSourcesRelationnelles.prod.dto.ressource.CreateResourceDTO;
-import com.ReSourcesRelationnelles.prod.dto.ressource.ResourceDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
 import com.ReSourcesRelationnelles.prod.entity.*;
 import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
 import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
