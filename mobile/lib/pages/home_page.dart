@@ -33,10 +33,17 @@ class _HomePageState extends State<HomePage> {
       body: FutureBuilder<List<Ressource>>(
         future: ressources,
         builder: (context, snapshot) {
+          print('Has data: ${snapshot.hasData}');
+          print('Data: ${snapshot.data}');
+          print('Runtime type: ${snapshot.data?.runtimeType}');
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur : ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('Aucune donnée reçue'));
+          } else if (snapshot.data is! List<Ressource>) {
+            return const Center(child: Text('Données invalides'));
           } else if (snapshot.hasData) {
             return Center(
               child: SingleChildScrollView(
@@ -72,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       items: snapshot.data!.map((ressource) {
                         return Card(
-                          color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
+                          color: Colors.deepPurple.shade100,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -82,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  ressource.name,
+                                  ressource.titre,
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -90,14 +97,14 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 12),
                                 Text(
-                                  'Année : ${ressource.year}',
+                                  'Catégorie : ${ressource.categorie}',
                                   style: const TextStyle(fontSize: 18, color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Pantone : ${ressource.pantoneValue}',
+                                  'Type : ${ressource.type}',
                                   style: const TextStyle(fontSize: 16, color: Colors.white60),
                                 ),
                               ],

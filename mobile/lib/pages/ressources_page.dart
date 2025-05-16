@@ -20,7 +20,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
   late Future<List<Ressource>> ressourcesFuture;
 
   String searchQuery = '';
-  String selectedColor = '';
+  String selectedCategorie = '';
   List<Ressource> allRessources = [];
 
   @override
@@ -46,16 +46,16 @@ class _RessourcesPageState extends State<RessourcesPage> {
 
   List<Ressource> get filteredRessources {
     return allRessources.where((r) {
-      final matchSearch = r.name.toLowerCase().contains(searchQuery.toLowerCase());
-      final matchColor = selectedColor.isEmpty || r.color.toLowerCase() == selectedColor.toLowerCase();
-      return matchSearch && matchColor;
+      final matchSearch = r.titre.toLowerCase().contains(searchQuery.toLowerCase());
+      final matchCategorie = selectedCategorie.isEmpty || r.categorie.toLowerCase() == selectedCategorie.toLowerCase();
+      return matchSearch && matchCategorie;
     }).toList();
   }
 
-  List<String> get availableColors {
-    final colors = allRessources.map((r) => r.color.toLowerCase()).toSet().toList();
-    colors.sort();
-    return colors;
+  List<String> get availableCategories {
+    final categories = allRessources.map((r) => r.categorie.toLowerCase()).toSet().toList();
+    categories.sort();
+    return categories;
   }
 
   @override
@@ -69,6 +69,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
 
     return session.isLoggedIn
         ? Scaffold(
+      backgroundColor: Colors.grey.shade100,
       body: FutureBuilder<List<Ressource>>(
         future: ressourcesFuture,
         builder: (context, snapshot) {
@@ -80,44 +81,46 @@ class _RessourcesPageState extends State<RessourcesPage> {
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(15.0),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
                   child: TextField(
                     onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
+                      setState(() => searchQuery = value);
                     },
                     decoration: InputDecoration(
                       hintText: "Rechercher une ressource...",
+                      filled: true,
+                      fillColor: Colors.white,
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
                 ),
                 SizedBox(
-                  height: 50,
+                  height: 45,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: availableColors.length,
+                    itemCount: availableCategories.length,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     itemBuilder: (context, index) {
-                      final colorHex = availableColors[index];
-                      final isSelected = selectedColor == colorHex;
+                      final cat = availableCategories[index];
+                      final isSelected = selectedCategorie == cat;
 
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: ChoiceChip(
-                          label: Text(
-                            colorHex.toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
+                          label: Text(cat.toUpperCase()),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.deepPurple,
                           ),
-                          selectedColor: Color(int.parse(colorHex.replaceFirst('#', '0xff'))),
-                          backgroundColor: Color(int.parse(colorHex.replaceFirst('#', '0xff'))).withOpacity(0.4),
+                          selectedColor: Colors.deepPurple,
+                          backgroundColor: Colors.deepPurple.shade100,
                           selected: isSelected,
                           onSelected: (_) {
                             setState(() {
-                              selectedColor = isSelected ? '' : colorHex;
+                              selectedCategorie = isSelected ? '' : cat;
                             });
                           },
                         ),
@@ -125,56 +128,81 @@ class _RessourcesPageState extends State<RessourcesPage> {
                     },
                   ),
                 ),
+                const SizedBox(height: 10),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(9.0),
-                    child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 1,
-                        crossAxisSpacing: 5.0,
-                        mainAxisSpacing: 5.0,
-                        childAspectRatio: 2.5,
-                      ),
+                    padding: const EdgeInsets.all(12),
+                    child: filteredRessources.isEmpty
+                        ? const Center(child: Text("Aucune ressource trouvée."))
+                        : ListView.builder(
                       itemCount: filteredRessources.length,
                       itemBuilder: (context, index) {
                         final ressource = filteredRessources[index];
-                        return InkWell(
+                        return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    RessourceDetailPage(ressource: ressource),
+                                builder: (context) => RessourceDetailPage(ressource: ressource),
                               ),
                             );
                           },
-                          child: Card(
-                            color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(16),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          ressource.titre,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepPurple,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          ressource.categorie,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
                                   Text(
-                                    ressource.name,
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                    ressource.contenu.length > 100
+                                        ? "${ressource.contenu.substring(0, 100)}..."
+                                        : ressource.contenu,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade700,
                                     ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    'Année : ${ressource.year}',
-                                    style: const TextStyle(fontSize: 18, color: Colors.white70),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Pantone : ${ressource.pantoneValue}',
-                                    style: const TextStyle(fontSize: 16, color: Colors.white60),
                                   ),
                                 ],
                               ),
@@ -190,19 +218,23 @@ class _RessourcesPageState extends State<RessourcesPage> {
           }
         },
       ),
-      floatingActionButton: SizedBox(
-        width: 70,
-        height: 70,
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CreatePage()),
-            );
-          },
-          backgroundColor: Colors.deepPurple,
-          foregroundColor: Colors.white,
-          child: const Icon(Icons.add, size: 36),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CreatePage()),
+          );
+        },
+        backgroundColor: Colors.deepPurple,
+        icon: const Icon(
+            Icons.add,
+            color: Colors.white
+        ),
+        label: const Text(
+          "Créer une ressource",
+          style: TextStyle(
+            color: Colors.white
+          ),
         ),
       ),
     )

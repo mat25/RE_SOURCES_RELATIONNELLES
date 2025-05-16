@@ -35,6 +35,13 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Lato',
+        //bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          //selectedLabelStyle: TextStyle(fontFamily: 'Inter'),
+          //unselectedLabelStyle: TextStyle(fontFamily: 'Inter'),
+        // ),
+      ),
       home: Consumer<SessionProvider>(
         builder: (context, session, _) {
           return MainPage(session: session);

@@ -154,7 +154,10 @@ class _LoginFormState extends State<LoginForm> {
                       : const Icon(Icons.login, color: Colors.white),
                   label: Text(
                     _isLoading ? 'Connexion...' : 'Se connecter',
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,

@@ -7,14 +7,13 @@ class RessourceRepository {
   RessourceRepository(this._client);
 
   Future<List<Ressource>> getRessources() async {
-    final response = await _client.get('/unknown');
+    final response = await _client.get('/resources');
 
-    print('Réponse : ${response.data}');
-
-    if (response.data != null && response.data['data'] is List) {
-      return Ressource.fromJsonList(response.data['data']);
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.map((json) => Ressource.fromJson(json)).toList();
     } else {
-      throw Exception('Format de réponse inattendu');
+      return [];
     }
   }
 

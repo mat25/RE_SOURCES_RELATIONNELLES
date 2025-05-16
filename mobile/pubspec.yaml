@@ -35,10 +35,13 @@ dependencies:
   carousel_slider: ^5.0.0
   path_provider: ^2.0.14
   shared_preferences: ^2.2.2
+  url_launcher: ^6.1.7
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   getwidget: ^6.0.0
+  styled_widget: ^0.4.1
+  flutter_neumorphic: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -56,7 +59,41 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  fonts:
+    - family: Mulish
+      fonts:
+        - asset: lib/assets/fonts/Mulish-Regular.ttf
+        - asset: lib/assets/fonts/Mulish-Italic.ttf
+          weight: 700
+    - family: Raleway
+      fonts:
+        - asset: lib/assets/fonts/Raleway-Italic.ttf
+        - asset: lib/assets/fonts/Raleway-Regular.ttf
+    - family: Bebas
+      fonts:
+        - asset: lib/assets/fonts/BebasNeue-Regular.ttf
+    - family: Inter
+      fonts:
+        - asset: lib/assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
+        - asset: lib/assets/fonts/Inter-VariableFont_opsz,wght.ttf
+    - family: Worksans
+      fonts:
+        - asset: lib/assets/fonts/WorkSans-Italic-VariableFont_wght.ttf
+        - asset: lib/assets/fonts/WorkSans-VariableFont_wght.ttf
+    - family: Ubuntu
+      fonts:
+        - asset: lib/assets/fonts/Ubuntu-Bold.ttf
+        - asset: lib/assets/fonts/Ubuntu-Regular.ttf
+        - asset: lib/assets/fonts/Ubuntu-Italic.ttf
+    - family: Notosans
+      fonts:
+        - asset: lib/assets/fonts/NotoSans-Italic-VariableFont_wdth,wght.ttf
+        - asset: lib/assets/fonts/NotoSans-VariableFont_wdth,wght.ttf
+    - family: Lato
+      fonts:
+        - asset: lib/assets/fonts/Lato-Regular.ttf
+        - asset: lib/assets/fonts/Lato-Italic.ttf
+        - asset: lib/assets/fonts/Lato-Bold.ttf
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

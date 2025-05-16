@@ -1,29 +1,40 @@
 class Ressource {
   final int id;
-  final String name;
-  final int year;
-  final String color;
-  final String pantoneValue;
+  final String titre;
+  final String contenu;
+  final String? lienVideo;
+  final DateTime dateCreation;
+  final String visibilite;
+  final String statut;
+  final String? type;
+  final String categorie;
+  final int createurId;
 
   Ressource({
     required this.id,
-    required this.name,
-    required this.year,
-    required this.color,
-    required this.pantoneValue,
+    required this.titre,
+    required this.contenu,
+    this.lienVideo,
+    required this.dateCreation,
+    required this.visibilite,
+    required this.statut,
+    this.type,
+    required this.categorie,
+    required this.createurId,
   });
 
   factory Ressource.fromJson(Map<String, dynamic> json) {
     return Ressource(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      year: json['year'] as int,
-      color: json['color'] as String,
-      pantoneValue: json['pantone_value'] as String,
+      id: json['id'],
+      titre: json['title'] ?? 'Sans titre',
+      contenu: json['content'] ?? '',
+      lienVideo: json['videoLink'],
+      dateCreation: DateTime.parse(json['creationDate']),
+      visibilite: json['visibility'] ?? 'PRIVEE',
+      statut: json['status'] ?? 'EN_ATTENTE',
+      type: json['type'],
+      categorie: json['category'] ?? 'Autre',
+      createurId: json['creatorId'],
     );
-  }
-
-  static List<Ressource> fromJsonList(List<dynamic> jsonList) {
-    return jsonList.map((json) => Ressource.fromJson(json)).toList();
   }
 }

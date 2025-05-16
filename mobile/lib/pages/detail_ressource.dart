@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/ressource.dart';
 
 class RessourceDetailPage extends StatefulWidget {
@@ -22,7 +23,7 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(ressource.name),
+        title: Text(ressource.titre),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
@@ -30,46 +31,75 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // Section Info
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _infoTile(Icons.calendar_today, 'Créée le', ressource.dateCreation.toLocal().toString().split(' ')[0]),
+                    _infoTile(Icons.category, 'Catégorie', ressource.categorie),
+                    _infoTile(Icons.label, 'Type', ressource.type ?? 'Null'),
+                    _infoTile(Icons.check_circle_outline, 'Statut', ressource.statut),
+                    _infoTile(Icons.visibility, 'Visibilité', ressource.visibilite),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ressource.name,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text('Année : ${ressource.year}', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 5),
-                  Text('Valeur Pantone : ${ressource.pantoneValue}', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
-                      const Text("Couleur : "),
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: Color(int.parse(ressource.color.replaceFirst('#', '0xff'))),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black12),
+            ),
+
+            const SizedBox(height: 20),
+
+            Card(
+              color: Colors.deepPurple.shade50,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Contenu',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      ressource.contenu,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    if (ressource.lienVideo?.isNotEmpty == true) ...[
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () async {
+                          final url = Uri.tryParse(ressource.lienVideo!);
+                          if (url != null && await canLaunchUrl(url)) {
+                            await launchUrl(url);
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            const Icon(Icons.play_circle_fill, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                ressource.lienVideo!,
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ]
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 30),
 
-            // Action Buttons with Labels
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -96,7 +126,6 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
 
             const SizedBox(height: 30),
 
-            // Comment Section
             const Text(
               'Ajouter un commentaire',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -132,6 +161,25 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _infoTile(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.deepPurple, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            '$label : ',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(value, style: const TextStyle(color: Colors.black87)),
+          ),
+        ],
       ),
     );
   }
