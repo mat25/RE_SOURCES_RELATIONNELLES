@@ -31,6 +31,7 @@ android/captures/
 # macOS
 macos/Flutter/Flutter.framework
 macos/Flutter/Flutter.podspec
+macos/Flutter/GeneratedPluginRegistrant.swift
 macos/Pods/
 macos/build/
 macos/.generated/

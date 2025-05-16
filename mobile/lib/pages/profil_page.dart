@@ -8,16 +8,45 @@ import 'login_page.dart';
 class ProfilPage extends StatelessWidget {
   const ProfilPage({Key? key}) : super(key: key);
 
-  void _showLoginSnackbar(BuildContext context, String message) {
+  void _showLoginSnackbar(BuildContext context, String message, bool isError) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.green,
+          backgroundColor: isError ? Colors.red : Colors.green,
           duration: const Duration(seconds: 3),
         ),
       );
     });
+  }
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text('Confirmer la déconnexion'),
+        content: const Text('Êtes-vous sûr(e) de vouloir vous déconnecter ?'),
+        actions: [
+          TextButton(
+            child: const Text('Annuler'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Se déconnecter'),
+            onPressed: () {
+              final session = Provider.of<SessionProvider>(context, listen: false);
+              session.logout();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -25,7 +54,7 @@ class ProfilPage extends StatelessWidget {
     final session = Provider.of<SessionProvider>(context);
 
     if (session.loginMessage != null) {
-      _showLoginSnackbar(context, session.loginMessage!);
+      _showLoginSnackbar(context, session.loginMessage!, session.isLoginError);
       session.clearLoginMessage();
     }
 
@@ -48,7 +77,7 @@ class ProfilPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    session.user?.name ?? 'Utilisateur',
+                    session.user?.username ?? 'Utilisateur',
                     style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
                   Text(
@@ -87,8 +116,9 @@ class ProfilPage extends StatelessWidget {
               context,
               icon: Icons.bar_chart,
               title: 'Progression',
-              subtitle: 'Voir ma progression sur les resssources',
+              subtitle: 'Voir ma progression sur les ressources',
               onTap: () {
+                // TODO: Naviguer vers la page de progression
               },
             ),
             _buildOptionTile(
@@ -105,15 +135,23 @@ class ProfilPage extends StatelessWidget {
                 );
               },
             ),
-            _buildOptionTile(
-              context,
-              icon: Icons.logout,
-              title: 'Déconnexion',
-              subtitle: 'Se déconnecter de votre compte',
-              onTap: () => session.logout(),
-              iconColor: Colors.red,
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () => _showLogoutConfirmationDialog(context),
+                icon: const Icon(Icons.logout),
+                label: const Text('Se déconnecter'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
           ],
         ),
       ),

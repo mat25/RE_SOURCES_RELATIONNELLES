@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/pages/home_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 
@@ -24,6 +23,55 @@ class _LoginFormState extends State<LoginForm> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void _showPasswordResetDialog(BuildContext context) {
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text('Réinitialiser le mot de passe'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Logique de soumission ici plus tard
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Envoyer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -82,8 +130,7 @@ class _LoginFormState extends State<LoginForm> {
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
-                  onPressed: () {
-                  },
+                  onPressed: () => _showPasswordResetDialog(context),
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: TextStyle(color: Colors.deepPurple),
