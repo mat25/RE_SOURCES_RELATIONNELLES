@@ -5,6 +5,7 @@ import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
 import com.ReSourcesRelationnelles.prod.service.RessourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +17,8 @@ public class RessourceController {
     private RessourceService ressourceService;
 
     @GetMapping("/ressources")
-    public ResponseEntity<List<RessourceDTO>> getAllRessources() {
-        List<RessourceDTO> ressources = ressourceService.getAllRessources();
+    public ResponseEntity<List<RessourceDTO>> getAllRessources(Authentication authentication) {
+        List<RessourceDTO> ressources = ressourceService.getAllRessources(authentication);
         return ResponseEntity.ok(ressources);
-
     }
 }
