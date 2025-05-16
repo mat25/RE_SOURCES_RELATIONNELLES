@@ -21,6 +21,7 @@ class SessionProvider with ChangeNotifier {
   User? get user => _user;
   String? get token => _token;
   bool get isLoggedIn => _user != null;
+  int? get userId => _user?.id; // <- ID exposé ici
 
   int _currentIndex = 2;
   int get currentIndex => _currentIndex;
@@ -51,7 +52,7 @@ class SessionProvider with ChangeNotifier {
         password: password!,
       );
 
-      _token = token as String;
+      _token = token;
       await loadCurrentUser();
 
       _loginMessage = "Connexion réussie !";

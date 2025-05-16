@@ -41,21 +41,16 @@ class UserRepository {
     }
   }
 
-  Future<Object> login({
-    required String username,
-    required String password
-  }) async {
+  Future<String> login({required String username, required String password}) async {
     final response = await _client.post('/login', {
       'username': username,
       'password': password,
     });
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final token = response.data['token'];
-      if (token == null) throw Exception("Token manquant dans la réponse");
-      return token;
+    if (response.statusCode == 200 && response.data['token'] != null) {
+      return response.data['token'];
     } else {
-      throw Exception(response.data['message']);
+      throw Exception('Échec de la connexion');
     }
   }
 }

@@ -17,6 +17,15 @@ class RessourceRepository {
     }
   }
 
+  Future<void> createRessource({
+    required String token,
+    required Map<String, dynamic> data,
+  }) async {
+    final response = await _client.post('/resources', data, token: token);
 
+    if (response.statusCode != 201 && response.statusCode != 200) {
+      throw Exception('Échec de la création');
+    }
+  }
 
 }
