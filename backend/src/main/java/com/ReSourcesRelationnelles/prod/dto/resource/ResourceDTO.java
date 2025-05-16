@@ -1,4 +1,4 @@
-package com.ReSourcesRelationnelles.prod.dto.ressource;
+package com.ReSourcesRelationnelles.prod.dto.resource;
 
 import com.ReSourcesRelationnelles.prod.entity.Resource;
 
