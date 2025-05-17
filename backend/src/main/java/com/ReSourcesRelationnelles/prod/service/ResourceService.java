@@ -1,5 +1,6 @@
 package com.ReSourcesRelationnelles.prod.service;
 
+import com.ReSourcesRelationnelles.prod.dto.MessageDTO;
 import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
 import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
 import com.ReSourcesRelationnelles.prod.entity.*;
@@ -8,6 +9,8 @@ import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.repository.CategoryRepository;
 import com.ReSourcesRelationnelles.prod.repository.ResourceRepository;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ import java.util.List;
 @Service
 public class ResourceService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private ResourceRepository resourceRepository;
     @Autowired
@@ -36,13 +40,16 @@ public class ResourceService {
         }
 
         for (Resource resource : allResources) {
-            boolean isAcceptedAndPublic = resource.getStatus() == StatusEnum.ACCEPTED &&
-                    resource.getVisibility() == VisibilityEnum.PUBLIC;
 
-            boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+            if (resource.isActive()) {
+                boolean isAcceptedAndPublic = resource.getStatus() == StatusEnum.ACCEPTED &&
+                        resource.getVisibility() == VisibilityEnum.PUBLIC;
 
-            if (isAcceptedAndPublic || isOwner) {
-                filteredResources.add(new ResourceDTO(resource));
+                boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+
+                if (isAcceptedAndPublic || isOwner) {
+                    filteredResources.add(new ResourceDTO(resource));
+                }
             }
         }
 
@@ -70,10 +77,42 @@ public class ResourceService {
         resource.setVisibility(VisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
         resource.setStatus(StatusEnum.PENDING);
         resource.setType(request.getType());
+        resource.setActive(true);
         resource.setCategory(category);
         resource.setCreator(user);
 
         Resource savedResource = resourceRepository.save(resource);
         return new ResourceDTO(savedResource);
     }
+
+    public MessageDTO deleteResource(Long resourceId, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new BadRequestException("Utilisateur non authentifié.");
+        }
+
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        if (currentUser == null) {
+            throw new NotFoundException("Utilisateur non trouvé.");
+        }
+
+        Resource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
+
+        boolean isAdmin = currentUser.getRole().getName() == RoleEnum.ADMIN;
+        boolean isSuperAdmin = currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN;
+
+        if (!isAdmin && !isSuperAdmin) {
+            if (!resource.getCreator().getId().equals(currentUser.getId())) {
+                throw new BadRequestException("Vous ne pouvez supprimer que vos propres ressources.");
+            }
+        }
+
+        resource.setActive(false);
+        resourceRepository.save(resource);
+
+        log.warn("Suppression de la ressource ID {} par l'utilisateur {}", resourceId, currentUser.getUsername());
+
+        return new MessageDTO("Ressource supprimée avec succès.");
+    }
+
 }

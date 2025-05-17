@@ -23,6 +23,9 @@ public class Resource {
 
     private String type;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -93,6 +96,14 @@ public class Resource {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Category getCategory() {

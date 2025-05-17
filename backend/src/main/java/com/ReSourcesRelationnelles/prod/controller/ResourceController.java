@@ -1,5 +1,6 @@
 package com.ReSourcesRelationnelles.prod.controller;
 
+import com.ReSourcesRelationnelles.prod.dto.MessageDTO;
 import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
 import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
 import com.ReSourcesRelationnelles.prod.service.ResourceService;
@@ -27,5 +28,11 @@ public class ResourceController {
     public ResponseEntity<ResourceDTO> createResource(@RequestBody CreateResourceDTO request, Authentication authentication) {
         ResourceDTO resource = resourceService.createResource(request, authentication);
         return ResponseEntity.ok(resource);
+    }
+
+    @DeleteMapping("/resources/{id}")
+    public ResponseEntity<MessageDTO> deleteResource(@PathVariable Long id, Authentication authentication) {
+        MessageDTO message = resourceService.deleteResource(id, authentication);
+        return ResponseEntity.ok(message);
     }
 }
