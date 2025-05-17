@@ -25,7 +25,7 @@ public class ResourceDTO {
         this.creationDate = resource.getCreationDate();
         this.visibility = resource.getVisibility().name();
         this.status = resource.getStatus().name();
-        this.type = resource.getType();
+        this.type = resource.getType().name();
         this.active = resource.isActive();
         this.category = resource.getCategory().getName();
         this.creatorId = resource.getCreator().getId();

@@ -45,8 +45,8 @@ public class ResourceService {
         for (Resource resource : allResources) {
 
             if (resource.isActive()) {
-                boolean isAcceptedAndPublic = resource.getStatus() == StatusEnum.ACCEPTED &&
-                        resource.getVisibility() == VisibilityEnum.PUBLIC;
+                boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
+                        resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
 
                 boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
 
@@ -77,9 +77,9 @@ public class ResourceService {
         resource.setContent(request.getContent());
         resource.setVideoLink(request.getVideoLink());
         resource.setCreationDate(LocalDateTime.now());
-        resource.setVisibility(VisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
-        resource.setStatus(StatusEnum.PENDING);
-        resource.setType(request.getType());
+        resource.setVisibility(ResourceVisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
+        resource.setStatus(ResourceStatusEnum.PENDING);
+        resource.setType(ResourceTypeEnum.valueOf(request.getType().toUpperCase()));
         resource.setActive(true);
         resource.setCategory(category);
         resource.setCreator(user);
@@ -141,13 +141,17 @@ public class ResourceService {
             }
             if (request.getVisibility() != null) {
                 try {
-                    resource.setVisibility(VisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
+                    resource.setVisibility(ResourceVisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
                 } catch (IllegalArgumentException e) {
                     throw new BadRequestException("Visibilité invalide.");
                 }
             }
             if (request.getType() != null) {
-                resource.setType(request.getType());
+                try {
+                    resource.setType(ResourceTypeEnum.valueOf(request.getType().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    throw new BadRequestException("Type de ressource invalide.");
+                }
             }
             if (request.getCategoryId() != null) {
                 Category category = categoryRepository.findById(request.getCategoryId())
@@ -155,7 +159,7 @@ public class ResourceService {
                 resource.setCategory(category);
             }
 
-            resource.setStatus(StatusEnum.PENDING);
+            resource.setStatus(ResourceStatusEnum.PENDING);
         }
 
         if ((isModerator || isAdmin || isSuperAdmin)) {
@@ -163,7 +167,7 @@ public class ResourceService {
                 throw new BadRequestException("Statut invalide.");
             }
             try {
-                resource.setStatus(StatusEnum.valueOf(request.getStatus().toUpperCase()));
+                resource.setStatus(ResourceStatusEnum.valueOf(request.getStatus().toUpperCase()));
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException("Statut invalide.");
             }

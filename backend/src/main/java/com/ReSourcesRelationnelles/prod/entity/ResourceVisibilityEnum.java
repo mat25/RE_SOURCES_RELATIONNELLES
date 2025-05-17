@@ -1,6 +1,6 @@
 package com.ReSourcesRelationnelles.prod.entity;
 
-public enum VisibilityEnum {
+public enum ResourceVisibilityEnum {
     PRIVATE,
     SHARED,
     PUBLIC

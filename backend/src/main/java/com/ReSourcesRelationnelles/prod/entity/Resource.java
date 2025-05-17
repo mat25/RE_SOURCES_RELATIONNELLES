@@ -17,12 +17,13 @@ public class Resource {
     private LocalDateTime creationDate;
 
     @Enumerated(EnumType.STRING)
-    private VisibilityEnum visibility;
+    private ResourceVisibilityEnum visibility;
 
     @Enumerated(EnumType.STRING)
-    private StatusEnum status;
+    private ResourceStatusEnum status;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private ResourceTypeEnum type;
 
     @Column(nullable = false)
     private boolean active = true;
@@ -75,27 +76,27 @@ public class Resource {
         this.creationDate = creationDate;
     }
 
-    public VisibilityEnum getVisibility() {
+    public ResourceVisibilityEnum getVisibility() {
         return visibility;
     }
 
-    public void setVisibility(VisibilityEnum visibility) {
+    public void setVisibility(ResourceVisibilityEnum visibility) {
         this.visibility = visibility;
     }
 
-    public StatusEnum getStatus() {
+    public ResourceStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(StatusEnum status) {
+    public void setStatus(ResourceStatusEnum status) {
         this.status = status;
     }
 
-    public String getType() {
+    public ResourceTypeEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ResourceTypeEnum type) {
         this.type = type;
     }
 

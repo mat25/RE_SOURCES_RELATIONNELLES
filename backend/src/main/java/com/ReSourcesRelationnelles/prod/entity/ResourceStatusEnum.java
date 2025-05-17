@@ -1,6 +1,6 @@
 package com.ReSourcesRelationnelles.prod.entity;
 
-public enum StatusEnum {
+public enum ResourceStatusEnum {
     ACCEPTED,
     PENDING,
     REJECTED,
