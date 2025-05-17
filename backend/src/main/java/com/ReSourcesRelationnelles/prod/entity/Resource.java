@@ -11,6 +11,7 @@ public class Resource {
     private Long id;
 
     private String title;
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
     private String videoLink;
     private LocalDateTime creationDate;
