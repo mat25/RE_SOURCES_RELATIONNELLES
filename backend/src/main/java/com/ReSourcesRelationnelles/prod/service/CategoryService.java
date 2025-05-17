@@ -36,4 +36,18 @@ public class CategoryService {
 
         return new CategoryDTO(savedCategory);
     }
+
+    public CategoryDTO updateCategory(Long id, CreateCategoryDTO request) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Catégorie non trouvée."));
+
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new BadRequestException("Le nom de la catégorie ne peut pas être vide.");
+        }
+
+        category.setName(request.getName());
+
+        Category savedCategory = categoryRepository.save(category);
+        return new CategoryDTO(savedCategory);
+    }
 }

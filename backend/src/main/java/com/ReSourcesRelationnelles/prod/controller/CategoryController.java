@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +27,13 @@ public class CategoryController {
     @PostMapping("/category")
     public ResponseEntity<CategoryDTO> createCategory(@RequestBody CreateCategoryDTO categoryDTO) {
         CategoryDTO category = categoryService.createCategory(categoryDTO);
+        return ResponseEntity.ok(category);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PatchMapping("/category/{id}")
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id,@RequestBody CreateCategoryDTO categoryDTO) {
+        CategoryDTO category = categoryService.updateCategory(id,categoryDTO);
         return ResponseEntity.ok(category);
     }
 }
