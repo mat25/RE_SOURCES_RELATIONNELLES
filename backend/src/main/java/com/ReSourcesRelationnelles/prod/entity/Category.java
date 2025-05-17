@@ -12,6 +12,9 @@ public class Category {
 
     private String name;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @OneToMany(mappedBy = "category")
     private List<Resource> resources;
 
@@ -29,6 +32,14 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public List<Resource> getResources() {

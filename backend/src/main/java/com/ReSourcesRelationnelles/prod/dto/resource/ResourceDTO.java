@@ -13,6 +13,7 @@ public class ResourceDTO {
     private String visibility;
     private String status;
     private String type;
+    private Boolean active;
     private String category;
     private Long creatorId;
 
@@ -25,6 +26,7 @@ public class ResourceDTO {
         this.visibility = resource.getVisibility().name();
         this.status = resource.getStatus().name();
         this.type = resource.getType();
+        this.active = resource.isActive();
         this.category = resource.getCategory().getName();
         this.creatorId = resource.getCreator().getId();
     }
@@ -91,6 +93,14 @@ public class ResourceDTO {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public String getCategory() {

@@ -22,7 +22,7 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
 
     public List<CategoryDTO> getAllCategory() {
-        return categoryRepository.findAll().stream()
+        return categoryRepository.findByActiveTrue().stream()
                 .map(CategoryDTO::new)
                 .toList();
     }
@@ -31,6 +31,7 @@ public class CategoryService {
 
         Category category = new Category();
         category.setName(request.getName());
+        category.setActive(true);
 
         Category savedCategory = categoryRepository.save(category);
 
@@ -41,6 +42,10 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Catégorie non trouvée."));
 
+        if (!category.isActive()) {
+            throw new BadRequestException("Impossible de modifier une catégorie supprimée.");
+        }
+
         if (request.getName() == null || request.getName().isBlank()) {
             throw new BadRequestException("Le nom de la catégorie ne peut pas être vide.");
         }
@@ -50,4 +55,15 @@ public class CategoryService {
         Category savedCategory = categoryRepository.save(category);
         return new CategoryDTO(savedCategory);
     }
+
+    public CategoryDTO deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Catégorie non trouvée."));
+
+        category.setActive(false);
+
+        Category savedCategory = categoryRepository.save(category);
+        return new CategoryDTO(savedCategory);
+    }
+
 }
