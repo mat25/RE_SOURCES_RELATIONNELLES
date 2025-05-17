@@ -23,11 +23,16 @@ public class ResourceController {
         return ResponseEntity.ok(resources);
     }
 
-
     @PostMapping("/resources")
     public ResponseEntity<ResourceDTO> createResource(@RequestBody CreateResourceDTO request, Authentication authentication) {
-        ResourceDTO resource = resourceService.createResource(request, authentication);
-        return ResponseEntity.ok(resource);
+        ResourceDTO resourceDTO = resourceService.createResource(request, authentication);
+        return ResponseEntity.ok(resourceDTO);
+    }
+
+    @PatchMapping("/resources/{id}")
+    public ResponseEntity<ResourceDTO> updateResource(@PathVariable Long id,@RequestBody CreateResourceDTO request, Authentication authentication) {
+        ResourceDTO resourceDTO = resourceService.updateResource(id,request, authentication);
+        return ResponseEntity.ok(resourceDTO);
     }
 
     @DeleteMapping("/resources/{id}")

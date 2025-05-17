@@ -115,4 +115,77 @@ public class ResourceService {
         return new MessageDTO("Ressource supprimée avec succès.");
     }
 
+    public ResourceDTO updateResource(Long resourceId, CreateResourceDTO request, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new BadRequestException("Utilisateur non authentifié.");
+        }
+
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        if (currentUser == null) {
+            throw new NotFoundException("Utilisateur non trouvé.");
+        }
+
+        Resource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
+
+        if (!resource.isActive()) {
+            throw new BadRequestException("Impossible de modifier une ressource supprimée.");
+        }
+
+        boolean isOwner = resource.getCreator().getId().equals(currentUser.getId());
+        boolean isModerator = currentUser.getRole().getName() == RoleEnum.MODERATOR;
+        boolean isAdmin = currentUser.getRole().getName() == RoleEnum.ADMIN;
+        boolean isSuperAdmin = currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN;
+
+        if (isOwner) {
+            if (request.getTitle() != null) {
+                resource.setTitle(request.getTitle());
+            }
+            if (request.getContent() != null) {
+                resource.setContent(request.getContent());
+            }
+            if (request.getVideoLink() != null) {
+                resource.setVideoLink(request.getVideoLink());
+            }
+            if (request.getVisibility() != null) {
+                try {
+                    resource.setVisibility(VisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    throw new BadRequestException("Visibilité invalide.");
+                }
+            }
+            if (request.getType() != null) {
+                resource.setType(request.getType());
+            }
+            if (request.getCategoryId() != null) {
+                Category category = categoryRepository.findById(request.getCategoryId())
+                        .orElseThrow(() -> new NotFoundException("Catégorie introuvable."));
+                resource.setCategory(category);
+            }
+
+            resource.setStatus(StatusEnum.PENDING);
+        }
+
+        if ((isModerator || isAdmin || isSuperAdmin)) {
+            if (request.getStatus() == null) {
+                throw new BadRequestException("Statut invalide.");
+            }
+            try {
+                resource.setStatus(StatusEnum.valueOf(request.getStatus().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Statut invalide.");
+            }
+        }
+
+        if (!isOwner && !isModerator && !isAdmin && !isSuperAdmin) {
+            throw new BadRequestException("Vous ne pouvez modifier que vos propres ressources.");
+        }
+
+        Resource updated = resourceRepository.save(resource);
+        log.info("Mise à jour de la ressource ID {} par {}", resourceId, currentUser.getUsername());
+
+        return new ResourceDTO(updated);
+    }
+
+
 }

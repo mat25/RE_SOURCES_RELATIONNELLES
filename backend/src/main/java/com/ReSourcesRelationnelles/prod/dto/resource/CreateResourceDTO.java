@@ -5,6 +5,7 @@ public class CreateResourceDTO {
     private String content;
     private String videoLink;
     private String visibility;
+    private String status;
     private String type;
     private Long categoryId;
 
@@ -38,6 +39,14 @@ public class CreateResourceDTO {
 
     public void setVisibility(String visibility) {
         this.visibility = visibility;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getType() {
