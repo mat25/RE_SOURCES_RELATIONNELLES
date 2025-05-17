@@ -25,22 +25,22 @@ public class CategoryController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/category")
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CreateCategoryDTO categoryDTO) {
-        CategoryDTO category = categoryService.createCategory(categoryDTO);
+    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CreateCategoryDTO categoryDTO,Authentication authentication) {
+        CategoryDTO category = categoryService.createCategory(categoryDTO,authentication);
         return ResponseEntity.ok(category);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PatchMapping("/category/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id,@RequestBody CreateCategoryDTO categoryDTO) {
-        CategoryDTO category = categoryService.updateCategory(id,categoryDTO);
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id,@RequestBody CreateCategoryDTO categoryDTO,Authentication authentication) {
+        CategoryDTO category = categoryService.updateCategory(id,categoryDTO,authentication);
         return ResponseEntity.ok(category);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/category/{id}")
-    public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long id) {
-        CategoryDTO category = categoryService.deleteCategory(id);
+    public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long id,Authentication authentication) {
+        CategoryDTO category = categoryService.deleteCategory(id,authentication);
         return ResponseEntity.ok(category);
     }
 }

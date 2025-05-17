@@ -10,6 +10,7 @@ import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
 import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.security.JwtUtil;
+import com.ReSourcesRelationnelles.prod.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,8 @@ public class UserService {
     JwtUtil jwtUtils;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private SecurityUtils securityUtils;
 
     private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
@@ -193,48 +196,27 @@ public class UserService {
 
     public UserDTO getCurrentUser(Authentication authentication) {
 
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new BadRequestException("Utilisateur non authentifié.");
-        }
+        User currentUser = securityUtils.getCurrentUser(authentication);
 
-        User user = userRepository.findByUsername(authentication.getName());
-
-        if (user == null)
-            throw new NotFoundException("Utilisateur non trouvé.");
-
-        return new UserDTO(user);
+        return new UserDTO(currentUser);
     }
 
     public UserDTO updateCurrentUser(Authentication authentication, UpdateUserDTO request) {
 
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new BadRequestException("Utilisateur non authentifié.");
-        }
+        User currentUser = securityUtils.getCurrentUser(authentication);
 
-        User user = userRepository.findByUsername(authentication.getName());
+        log.info("Mise à jour du compte de l'utilisateur connecté : {}", currentUser.getUsername());
 
-        if (user == null)
-            throw new NotFoundException("Utilisateur non trouvé.");
-
-        log.info("Mise à jour du compte de l'utilisateur connecté : {}", authentication.getName());
-
-        return updateUser(user.getId(), request);
+        return updateUser(currentUser.getId(), request);
     }
 
     public MessageDTO deleteCurrentUser(Authentication authentication) {
 
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new BadRequestException("Utilisateur non authentifié.");
-        }
+        User currentUser = securityUtils.getCurrentUser(authentication);
 
-        User user = userRepository.findByUsername(authentication.getName());
+        userRepository.delete(currentUser);
 
-        if (user == null)
-            throw new NotFoundException("Utilisateur non trouvé.");
-
-        userRepository.delete(user);
-
-        log.warn("Suppression du compte de l'utilisateur connecté : {}", authentication.getName());
+        log.warn("Suppression du compte de l'utilisateur connecté : {}", currentUser.getUsername());
 
         return new MessageDTO("Utilisateur supprimé avec succès.");
     }

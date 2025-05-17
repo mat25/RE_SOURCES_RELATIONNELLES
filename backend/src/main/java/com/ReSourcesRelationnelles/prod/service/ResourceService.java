@@ -9,6 +9,7 @@ import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.repository.CategoryRepository;
 import com.ReSourcesRelationnelles.prod.repository.ResourceRepository;
 import com.ReSourcesRelationnelles.prod.repository.UserRepository;
+import com.ReSourcesRelationnelles.prod.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ public class ResourceService {
     private UserRepository userRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private SecurityUtils securityUtils;
 
     public List<ResourceDTO> getAllResources(Authentication authentication) {
         List<Resource> allResources = resourceRepository.findAll();
@@ -82,18 +85,14 @@ public class ResourceService {
         resource.setCreator(user);
 
         Resource savedResource = resourceRepository.save(resource);
+
+        log.info("Création de la ressource ID {} par l'utilisateur {}", savedResource.getId(), user.getUsername());
+
         return new ResourceDTO(savedResource);
     }
 
     public MessageDTO deleteResource(Long resourceId, Authentication authentication) {
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new BadRequestException("Utilisateur non authentifié.");
-        }
-
-        User currentUser = userRepository.findByUsername(authentication.getName());
-        if (currentUser == null) {
-            throw new NotFoundException("Utilisateur non trouvé.");
-        }
+        User currentUser = securityUtils.getCurrentUser(authentication);
 
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
@@ -116,14 +115,7 @@ public class ResourceService {
     }
 
     public ResourceDTO updateResource(Long resourceId, CreateResourceDTO request, Authentication authentication) {
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new BadRequestException("Utilisateur non authentifié.");
-        }
-
-        User currentUser = userRepository.findByUsername(authentication.getName());
-        if (currentUser == null) {
-            throw new NotFoundException("Utilisateur non trouvé.");
-        }
+        User currentUser = securityUtils.getCurrentUser(authentication);
 
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
