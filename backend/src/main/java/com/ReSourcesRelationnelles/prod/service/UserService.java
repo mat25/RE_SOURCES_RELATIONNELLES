@@ -1,10 +1,7 @@
 package com.ReSourcesRelationnelles.prod.service;
 
 import com.ReSourcesRelationnelles.prod.dto.*;
-import com.ReSourcesRelationnelles.prod.dto.user.LoginDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.RegisterDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.UpdateUserDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.*;
 import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
 import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
@@ -45,34 +42,33 @@ public class UserService {
 
     private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
-    public UserDTO createUser(RegisterDTO request) {
+    private void validateRegistration(RegisterDTO request) {
         if (request.getName() == null || request.getName().isBlank()) {
             throw new BadRequestException("Le nom est requis.");
         }
-
         if (request.getFirstName() == null || request.getFirstName().isBlank()) {
             throw new BadRequestException("Le prénom est requis.");
         }
-
         if (request.getUsername() == null || request.getUsername().isBlank()) {
             throw new BadRequestException("Le username est requis.");
         }
-
         if (request.getEmail() == null || !request.getEmail().matches(EMAIL_REGEX)) {
             throw new BadRequestException("Format d'email invalide.");
         }
-
         if (request.getPassword() == null || request.getPassword().length() < 8) {
             throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
         }
-
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("L'email est déjà utilisé.");
         }
-
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("Le username est déjà utilisé.");
         }
+    }
+
+
+    public UserDTO createUser(RegisterDTO request) {
+        validateRegistration(request);
 
         Role role = roleService.findByName(RoleEnum.USER)
                 .orElseThrow(() -> new NotFoundException("Rôle USER introuvable."));
@@ -89,6 +85,33 @@ public class UserService {
         );
 
         log.info("Création d'un nouvel utilisateur : {}", request.getUsername());
+        return new UserDTO(userRepository.save(user));
+    }
+
+    public UserDTO createUserWithRole(RegisterWithRoleDTO request) {
+        validateRegistration(request);
+
+        if (request.getRole() == null) {
+            throw new BadRequestException("Le rôle est requis.");
+        }
+
+        RoleEnum roleEnum = request.getRole();
+
+        Role role = roleService.findByName(roleEnum)
+                .orElseThrow(() -> new NotFoundException("Rôle " + roleEnum.name() + " introuvable."));
+
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+
+        User user = new User(
+                request.getName(),
+                request.getFirstName(),
+                request.getUsername(),
+                request.getEmail(),
+                hashedPassword,
+                role
+        );
+
+        log.info("Création d'un utilisateur avec le rôle {} : {}", roleEnum.name(), request.getUsername());
         return new UserDTO(userRepository.save(user));
     }
 

@@ -3,10 +3,7 @@ package com.ReSourcesRelationnelles.prod.controller;
 import java.util.List;
 
 import com.ReSourcesRelationnelles.prod.dto.*;
-import com.ReSourcesRelationnelles.prod.dto.user.LoginDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.RegisterDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.UpdateUserDTO;
-import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
+import com.ReSourcesRelationnelles.prod.dto.user.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +31,15 @@ public class UserController {
     public ResponseEntity<UserDTO> createUser(@RequestBody RegisterDTO request) {
         UserDTO createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    @Operation(summary = "Créer un nouvel utilisateur avec un rôle spécifique", description = "Permet à un SUPER_ADMIN de créer un compte USER, MODERATOR, ADMIN ou SUPER_ADMIN.")
+    @ApiResponse(responseCode = "201", description = "Utilisateur avec rôle créé avec succès (UserDTO)")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PostMapping("/admin/create")
+    public ResponseEntity<UserDTO> createUserWithRole(@RequestBody RegisterWithRoleDTO request) {
+        UserDTO user = userService.createUserWithRole(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @Operation(summary = "Connexion utilisateur", description = "Permet à un utilisateur de se connecter et de recevoir un jeton JWT.")
