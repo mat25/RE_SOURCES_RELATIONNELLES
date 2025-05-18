@@ -12,7 +12,7 @@ class CategoryRepository {
       final List data = response.data;
       return data.map<Map<String, dynamic>>((item) => {
         'id': item['id'],
-        'label': item['label'],
+        'label': item['name'],
       }).toList();
     } else {
       throw Exception('Échec de récupération des catégories');
