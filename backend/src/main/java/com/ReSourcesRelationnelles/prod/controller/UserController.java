@@ -93,6 +93,15 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Operation(summary = "Activer ou désactiver un utilisateur", description = "Permet aux administrateurs de changer le statut (actif/inactif) d’un utilisateur citoyen.")
+    @ApiResponse(responseCode = "200", description = "Utilisateur mis à jour (UserDTO)")
+    @PatchMapping("/users/{id}/toggle-status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable Long id) {
+        UserDTO updatedUser = userService.toggleUserStatus(id);
+        return ResponseEntity.ok(updatedUser);
+    }
+
     @Operation(summary = "Supprimer le compte de l'utilisateur connecté", description = "Permet à un utilisateur de supprimer son propre compte.")
     @ApiResponse(responseCode = "200", description = "Compte utilisateur supprimé (MessageDTO)")
     @DeleteMapping("/users/me")

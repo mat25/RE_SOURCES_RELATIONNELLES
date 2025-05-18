@@ -24,7 +24,7 @@ public class UserDTO {
         this.firstName = user.getFirstName();
         this.username = user.getUsername();
         this.email = user.getEmail();
-        this.status = user.getStatus();
+        this.status = user.getStatus().name();
         this.role = user.getRole();
         this.registrationDate = user.getRegistrationDate();
         this.timeBan = user.getTimeBan();

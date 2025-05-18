@@ -4,6 +4,7 @@ import com.ReSourcesRelationnelles.prod.dto.*;
 import com.ReSourcesRelationnelles.prod.dto.user.*;
 import com.ReSourcesRelationnelles.prod.entity.Role;
 import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
+import com.ReSourcesRelationnelles.prod.entity.UserStatusEnum;
 import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
 import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
 import com.ReSourcesRelationnelles.prod.security.JwtUtil;
@@ -138,8 +139,13 @@ public class UserService {
 
         User user = userRepository.findByUsername(userDetails.getUsername());
 
-        if (user == null)
+        if (user == null) {
             throw new NotFoundException("Utilisateur introuvable.");
+        }
+
+        if (user.getStatus() == UserStatusEnum.INACTIVE) {
+            throw new BadRequestException("Ce compte est désactivé. Veuillez contacter un administrateur.");
+        }
 
         String role = user.getRole().getName().name();
         String token = jwtUtils.generateToken(user.getUsername(), role);
@@ -259,5 +265,24 @@ public class UserService {
         log.warn("Suppression de l'utilisateur avec l'ID : {}", id);
 
         return new MessageDTO("Utilisateur supprimé avec succès.");
+    }
+
+    public UserDTO toggleUserStatus(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
+
+        if (user.getRole() == null || user.getRole().getName() != RoleEnum.USER) {
+            throw new BadRequestException("Seuls les utilisateurs avec le rôle USER peuvent être désactivés ou réactivés.");
+        }
+
+        if (user.getStatus() == UserStatusEnum.ACTIVE) {
+            user.setStatus(UserStatusEnum.INACTIVE);
+            log.info("Désactivation de l'utilisateur avec l'ID : {}", id);
+        } else {
+            user.setStatus(UserStatusEnum.ACTIVE);
+            log.info("Réactivation de l'utilisateur avec l'ID : {}", id);
+        }
+
+        return new UserDTO(userRepository.save(user));
     }
 }

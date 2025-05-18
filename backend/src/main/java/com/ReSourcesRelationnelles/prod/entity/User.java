@@ -20,7 +20,9 @@ public class User implements UserDetails {
     private String username;
     private String email;
     private String password;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatusEnum status;
     @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
     private Role role;
@@ -37,7 +39,7 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.status = "ACTIVE";
+        this.status = UserStatusEnum.ACTIVE;
         this.registrationDate = LocalDateTime.now();
         this.role = role;
     }
@@ -106,11 +108,11 @@ public class User implements UserDetails {
         return this;
     }
 
-    public String getStatus() {
+    public UserStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(UserStatusEnum status) {
         this.status = status;
     }
 
