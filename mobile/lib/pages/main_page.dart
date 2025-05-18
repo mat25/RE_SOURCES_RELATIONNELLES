@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/home_page.dart';
 import 'package:mobile/pages/profil_page.dart';
-import 'package:mobile/pages/ressources_page.dart';
+import 'package:mobile/pages/resources_page.dart';
 import 'package:mobile/pages/favorites_page.dart';
 import 'package:mobile/providers/session_provider.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +17,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
-    const RessourcesPage(),
+    const ResourcesPage(),
     const FavoritesPage(),
     const HomePage(),
     const ProfilPage(),

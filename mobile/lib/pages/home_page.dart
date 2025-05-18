@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../repositories/ressource_repository.dart';
-import '../models/ressource.dart';
+import '../repositories/resource_repository.dart';
+import '../models/resource.dart';
 import '../core/api/api_client.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
@@ -15,13 +15,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ressourceRepository = RessourceRepository(ApiClient());
-  late Future<List<Ressource>> ressources;
+  final resourceRepository = ResourceRepository(ApiClient());
+  late Future<List<Resource>> resources;
 
   @override
   void initState() {
     super.initState();
-    ressources = ressourceRepository.getRessources();
+    resources = resourceRepository.getResources();
   }
 
   @override
@@ -30,8 +30,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.deepPurple.shade50,
-      body: FutureBuilder<List<Ressource>>(
-        future: ressources,
+      body: FutureBuilder<List<Resource>>(
+        future: resources,
         builder: (context, snapshot) {
           print('Has data: ${snapshot.hasData}');
           print('Data: ${snapshot.data}');
@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
             return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
             return const Center(child: Text('Aucune donnée reçue'));
-          } else if (snapshot.data is! List<Ressource>) {
+          } else if (snapshot.data is! List<Resource>) {
             return const Center(child: Text('Données invalides'));
           } else if (snapshot.hasData) {
             return Center(
@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                         autoPlayInterval: const Duration(seconds: 3),
                         viewportFraction: 0.8,
                       ),
-                      items: snapshot.data!.map((ressource) {
+                      items: snapshot.data!.map((resource) {
                         return Card(
                           color: Colors.deepPurple.shade100,
                           shape: RoundedRectangleBorder(
@@ -89,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  ressource.titre,
+                                  resource.title,
                                   style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -99,12 +99,12 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Catégorie : ${ressource.categorie}',
+                                  'Catégorie : ${resource.category}',
                                   style: const TextStyle(fontSize: 18, color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Type : ${ressource.type}',
+                                  'Type : ${resource.type}',
                                   style: const TextStyle(fontSize: 16, color: Colors.white60),
                                 ),
                               ],

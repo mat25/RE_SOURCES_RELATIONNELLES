@@ -10,7 +10,7 @@ class UserCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text(user.name),
+        title: Text(user.firstName),
         subtitle: Text(user.email),
       ),
     );

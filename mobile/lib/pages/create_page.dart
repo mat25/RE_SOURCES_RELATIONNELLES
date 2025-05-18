@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
-import '../repositories/ressource_repository.dart';
+import '../repositories/resource_repository.dart';
 import '../repositories/category_repository.dart';
 import '../core/api/api_client.dart';
 
@@ -43,6 +43,7 @@ class _CreatePageState extends State<CreatePage> {
         _categories = categories;
         _isLoadingCategories = false;
       });
+      debugPrint('Catégories chargées : $_categories');
     } catch (e) {
       debugPrint('Erreur chargement catégories : $e');
       setState(() {
@@ -54,7 +55,7 @@ class _CreatePageState extends State<CreatePage> {
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<SessionProvider>(context);
-    final repository = RessourceRepository(ApiClient());
+    final repository = ResourceRepository(ApiClient());
 
     return Scaffold(
       appBar: AppBar(
@@ -168,7 +169,7 @@ class _CreatePageState extends State<CreatePage> {
                         setState(() => _isSubmitting = true);
 
                         try {
-                          await repository.createRessource(
+                          await repository.createResource(
                             token: session.token!,
                             data: {
                               'title': _titleController.text,

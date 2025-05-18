@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/pages/detail_ressource.dart';
+import 'package:mobile/pages/detail_resource.dart';
 import 'package:mobile/pages/login_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
-import '../repositories/ressource_repository.dart';
-import '../models/ressource.dart';
+import '../repositories/resource_repository.dart';
+import '../models/resource.dart';
 import '../core/api/api_client.dart';
 import 'create_page.dart';
 
-class RessourcesPage extends StatefulWidget {
-  const RessourcesPage({Key? key}) : super(key: key);
+class ResourcesPage extends StatefulWidget {
+  const ResourcesPage({Key? key}) : super(key: key);
 
   @override
-  State<RessourcesPage> createState() => _RessourcesPageState();
+  State<ResourcesPage> createState() => _ResourcesPageState();
 }
 
-class _RessourcesPageState extends State<RessourcesPage> {
-  final ressourceRepository = RessourceRepository(ApiClient());
-  late Future<List<Ressource>> ressourcesFuture;
+class _ResourcesPageState extends State<ResourcesPage> {
+  final resourceRepository = ResourceRepository(ApiClient());
+  late Future<List<Resource>> resourcesFuture;
 
   String searchQuery = '';
   String selectedCategorie = '';
-  List<Ressource> allRessources = [];
+  List<Resource> allResources = [];
 
   @override
   void initState() {
     super.initState();
-    ressourcesFuture = ressourceRepository.getRessources().then((list) {
-      allRessources = list;
+    resourcesFuture = resourceRepository.getResources().then((list) {
+      allResources = list;
       return list;
     });
   }
@@ -44,16 +44,16 @@ class _RessourcesPageState extends State<RessourcesPage> {
     });
   }
 
-  List<Ressource> get filteredRessources {
-    return allRessources.where((r) {
-      final matchSearch = r.titre.toLowerCase().contains(searchQuery.toLowerCase());
-      final matchCategorie = selectedCategorie.isEmpty || r.categorie.toLowerCase() == selectedCategorie.toLowerCase();
+  List<Resource> get filteredResources {
+    return allResources.where((r) {
+      final matchSearch = r.title.toLowerCase().contains(searchQuery.toLowerCase());
+      final matchCategorie = selectedCategorie.isEmpty || r.category.toLowerCase() == selectedCategorie.toLowerCase();
       return matchSearch && matchCategorie;
     }).toList();
   }
 
   List<String> get availableCategories {
-    final categories = allRessources.map((r) => r.categorie.toLowerCase()).toSet().toList();
+    final categories = allResources.map((r) => r.category.toLowerCase()).toSet().toList();
     categories.sort();
     return categories;
   }
@@ -70,8 +70,8 @@ class _RessourcesPageState extends State<RessourcesPage> {
     return session.isLoggedIn
         ? Scaffold(
       backgroundColor: Colors.grey.shade100,
-      body: FutureBuilder<List<Ressource>>(
-        future: ressourcesFuture,
+      body: FutureBuilder<List<Resource>>(
+        future: resourcesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -132,18 +132,18 @@ class _RessourcesPageState extends State<RessourcesPage> {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: filteredRessources.isEmpty
+                    child: filteredResources.isEmpty
                         ? const Center(child: Text("Aucune ressource trouvée."))
                         : ListView.builder(
-                      itemCount: filteredRessources.length,
+                      itemCount: filteredResources.length,
                       itemBuilder: (context, index) {
-                        final ressource = filteredRessources[index];
+                        final resource = filteredResources[index];
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => RessourceDetailPage(ressource: ressource),
+                                builder: (context) => ResourceDetailPage(resource: resource, token: session.token),
                               ),
                             );
                           },
@@ -171,7 +171,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          ressource.titre,
+                                          resource.title,
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -185,7 +185,7 @@ class _RessourcesPageState extends State<RessourcesPage> {
                                           borderRadius: BorderRadius.circular(20),
                                         ),
                                         child: Text(
-                                          ressource.categorie,
+                                          resource.category,
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,
@@ -196,9 +196,9 @@ class _RessourcesPageState extends State<RessourcesPage> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    ressource.contenu.length > 100
-                                        ? "${ressource.contenu.substring(0, 100)}..."
-                                        : ressource.contenu,
+                                    resource.content.length > 100
+                                        ? "${resource.content.substring(0, 100)}..."
+                                        : resource.content,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey.shade700,

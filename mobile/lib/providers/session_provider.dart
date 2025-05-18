@@ -21,7 +21,7 @@ class SessionProvider with ChangeNotifier {
   User? get user => _user;
   String? get token => _token;
   bool get isLoggedIn => _user != null;
-  int? get userId => _user?.id; // <- ID exposé ici
+  int? get userId => _user?.id;
 
   int _currentIndex = 2;
   int get currentIndex => _currentIndex;

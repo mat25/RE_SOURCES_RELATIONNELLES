@@ -1,33 +1,105 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/ressource.dart';
+import '../models/resource.dart';
+import '../repositories/resource_repository.dart';
+import '../core/api/api_client.dart';
 
-class RessourceDetailPage extends StatefulWidget {
-  final Ressource ressource;
+class ResourceDetailPage extends StatefulWidget {
+  final Resource resource;
+  final String? token;
 
-  const RessourceDetailPage({Key? key, required this.ressource}) : super(key: key);
+  const ResourceDetailPage({Key? key, required this.resource, this.token}) : super(key: key);
 
   @override
-  State<RessourceDetailPage> createState() => _RessourceDetailPageState();
+  State<ResourceDetailPage> createState() => _ResourceDetailPageState();
 }
 
-class _RessourceDetailPageState extends State<RessourceDetailPage> {
-  bool isFavorite = false;
-  bool isBookmarked = false;
-  bool isUsed = false;
+class _ResourceDetailPageState extends State<ResourceDetailPage> {
+  late bool isFavorite;
+  late bool isBookmarked;
+  late bool isUsed;
+  late bool isLoading;
   final TextEditingController _commentController = TextEditingController();
+  late ResourceRepository _repository;
+
+  @override
+  void initState() {
+    super.initState();
+
+    isFavorite = false;
+    isBookmarked = false;
+    isUsed = false;
+    isLoading = true;
+
+    _repository = ResourceRepository(ApiClient());
+    _fetchStatuses(); // Appel essentiel
+  }
+
+  Future<void> _fetchStatuses() async {
+    try {
+      final id = widget.resource.id;
+      final favorites = await _repository.fetchFavorites(token: widget.token);
+      final setAside = await _repository.fetchSetAside(token: widget.token);
+      final exploited = await _repository.fetchExploited(token: widget.token);
+
+      setState(() {
+        isFavorite = favorites.any((r) => r.id == id);
+        isBookmarked = setAside.any((r) => r.id == id);
+        isUsed = exploited.any((r) => r.id == id);
+        isLoading = false;
+      });
+    } catch (e) {
+      _showError('Erreur lors du chargement des statuts : $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    try {
+      await _repository.toggleFavorite(widget.resource.id, token: widget.token);
+      setState(() => isFavorite = !isFavorite);
+    } catch (e) {
+      _showError('Échec du changement d’état "favori"');
+    }
+  }
+
+  Future<void> _toggleSetAside() async {
+    try {
+      await _repository.toggleSetAside(widget.resource.id, token: widget.token);
+      setState(() => isBookmarked = !isBookmarked);
+    } catch (e) {
+      _showError('Échec du changement d’état "mis de côté"');
+    }
+  }
+
+  Future<void> _toggleExploited() async {
+    try {
+      await _repository.toggleExploited(widget.resource.id, token: widget.token);
+      setState(() => isUsed = !isUsed);
+    } catch (e) {
+      _showError('Échec du changement d’état "exploité"');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ressource = widget.ressource;
+    final resource = widget.resource;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(ressource.titre),
+        title: Text(resource.title),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
@@ -38,11 +110,11 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _infoTile(Icons.calendar_today, 'Créée le', ressource.dateCreation.toLocal().toString().split(' ')[0]),
-                    _infoTile(Icons.category, 'Catégorie', ressource.categorie),
-                    _infoTile(Icons.label, 'Type', ressource.type ?? 'Null'),
-                    _infoTile(Icons.check_circle_outline, 'Statut', ressource.statut),
-                    _infoTile(Icons.visibility, 'Visibilité', ressource.visibilite),
+                    _infoTile(Icons.calendar_today, 'Créée le', resource.creationDate.toLocal().toString().split(' ')[0]),
+                    _infoTile(Icons.category, 'Catégorie', resource.category),
+                    _infoTile(Icons.label, 'Type', resource.type ?? 'Null'),
+                    _infoTile(Icons.check_circle_outline, 'Statut', resource.status),
+                    _infoTile(Icons.visibility, 'Visibilité', resource.visibility),
                   ],
                 ),
               ),
@@ -64,14 +136,14 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      ressource.contenu,
+                      resource.content,
                       style: const TextStyle(fontSize: 16),
                     ),
-                    if (ressource.lienVideo?.isNotEmpty == true) ...[
+                    if (resource.videoLink?.isNotEmpty == true) ...[
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () async {
-                          final url = Uri.tryParse(ressource.lienVideo!);
+                          final url = Uri.tryParse(resource.videoLink!);
                           if (url != null && await canLaunchUrl(url)) {
                             await launchUrl(url);
                           }
@@ -82,7 +154,7 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                ressource.lienVideo!,
+                                resource.videoLink!,
                                 style: const TextStyle(
                                   color: Colors.blue,
                                   decoration: TextDecoration.underline,
@@ -107,19 +179,19 @@ class _RessourceDetailPageState extends State<RessourceDetailPage> {
                   icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                   label: 'Mettre de côté',
                   color: Colors.deepPurple,
-                  onTap: () => setState(() => isBookmarked = !isBookmarked),
+                  onTap: _toggleSetAside,
                 ),
                 _actionButton(
                   icon: isFavorite ? Icons.favorite : Icons.favorite_border,
                   label: 'Favori',
                   color: Colors.red,
-                  onTap: () => setState(() => isFavorite = !isFavorite),
+                  onTap: _toggleFavorite,
                 ),
                 _actionButton(
                   icon: isUsed ? Icons.check_box : Icons.check_box_outline_blank,
                   label: 'Exploité',
                   color: Colors.green,
-                  onTap: () => setState(() => isUsed = !isUsed),
+                  onTap: _toggleExploited,
                 ),
               ],
             ),
