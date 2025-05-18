@@ -7,6 +7,8 @@ import com.ReSourcesRelationnelles.prod.dto.user.LoginDTO;
 import com.ReSourcesRelationnelles.prod.dto.user.RegisterDTO;
 import com.ReSourcesRelationnelles.prod.dto.user.UpdateUserDTO;
 import com.ReSourcesRelationnelles.prod.dto.user.UserDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,24 +28,32 @@ public class UserController {
         this.userService = userService;
     }
 
+    @Operation(summary = "Créer un nouvel utilisateur", description = "Permet de créer un compte utilisateur.")
+    @ApiResponse(responseCode = "201", description = "Utilisateur créé avec succès (UserDTO)")
     @PostMapping("/register")
     public ResponseEntity<UserDTO> createUser(@RequestBody RegisterDTO request) {
         UserDTO createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
+    @Operation(summary = "Connexion utilisateur", description = "Permet à un utilisateur de se connecter et de recevoir un jeton JWT.")
+    @ApiResponse(responseCode = "200", description = "Connexion réussie et jeton JWT retourné (TokenDTO)")
     @PostMapping("/login")
     public ResponseEntity<TokenDTO> loginUser(@RequestBody LoginDTO request) {
         TokenDTO token = userService.loginUser(request);
         return ResponseEntity.ok(token);
     }
 
+    @Operation(summary = "Récupérer les informations de l'utilisateur connecté", description = "Retourne les données de l'utilisateur actuellement authentifié.")
+    @ApiResponse(responseCode = "200", description = "Informations de l'utilisateur connecté récupérées (UserDTO)")
     @GetMapping("/users/me")
     public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
         UserDTO user = userService.getCurrentUser(authentication);
         return ResponseEntity.ok(user);
     }
 
+    @Operation(summary = "Récupérer un utilisateur par son ID", description = "Permet aux administrateurs de récupérer les informations d'un utilisateur donné.")
+    @ApiResponse(responseCode = "200", description = "Utilisateur récupéré avec succès (UserDTO)")
     @GetMapping("/users/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
@@ -51,6 +61,8 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Operation(summary = "Récupérer tous les utilisateurs", description = "Permet aux administrateurs de récupérer la liste de tous les utilisateurs.")
+    @ApiResponse(responseCode = "200", description = "Liste des utilisateurs récupérée (List<UserDTO>)")
     @GetMapping("/users")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
@@ -58,12 +70,16 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @Operation(summary = "Mettre à jour les informations de l'utilisateur connecté", description = "Permet à un utilisateur de modifier ses propres informations.")
+    @ApiResponse(responseCode = "200", description = "Informations utilisateur mises à jour (UserDTO)")
     @PatchMapping("/users/me")
     public ResponseEntity<UserDTO> updateCurrentUser(Authentication authentication, @RequestBody UpdateUserDTO request) {
         UserDTO updatedUser = userService.updateCurrentUser(authentication, request);
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Operation(summary = "Mettre à jour un utilisateur par son ID", description = "Permet aux administrateurs de modifier les informations d'un utilisateur donné.")
+    @ApiResponse(responseCode = "200", description = "Informations utilisateur mises à jour (UserDTO)")
     @PatchMapping("/users/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
@@ -71,12 +87,16 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Operation(summary = "Supprimer le compte de l'utilisateur connecté", description = "Permet à un utilisateur de supprimer son propre compte.")
+    @ApiResponse(responseCode = "200", description = "Compte utilisateur supprimé (MessageDTO)")
     @DeleteMapping("/users/me")
     public ResponseEntity<MessageDTO> deleteCurrentUser(Authentication authentication) {
         MessageDTO message = userService.deleteCurrentUser(authentication);
         return ResponseEntity.ok(message);
     }
 
+    @Operation(summary = "Supprimer un utilisateur par son ID", description = "Permet aux administrateurs de supprimer un compte utilisateur donné.")
+    @ApiResponse(responseCode = "200", description = "Compte utilisateur supprimé (MessageDTO)")
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageDTO> deleteUser(@PathVariable Long id) {
