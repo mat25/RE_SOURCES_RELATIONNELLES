@@ -1,6 +1,7 @@
 package com.ReSourcesRelationnelles.prod.dto.resource;
 
 import com.ReSourcesRelationnelles.prod.entity.Resource;
+import com.ReSourcesRelationnelles.prod.entity.ResourceUserProgression;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,11 @@ public class ResourceDTO {
     private String category;
     private Long creatorId;
 
+    // Nouveaux champs pour les utilisateurs connectés
+    private Boolean isFavorite;
+    private Boolean isSetAside;
+    private Boolean isExploited;
+
     public ResourceDTO(Resource resource) {
         this.id = resource.getId();
         this.title = resource.getTitle();
@@ -31,91 +37,55 @@ public class ResourceDTO {
         this.creatorId = resource.getCreator().getId();
     }
 
-    public Long getId() {
-        return id;
+    public ResourceDTO(Resource resource, ResourceUserProgression progression) {
+        // Appel au constructeur que avec resource
+        this(resource);
+        if (progression != null) {
+            this.isFavorite = progression.isFavorite();
+            this.isSetAside = progression.isSetAside();
+            this.isExploited = progression.isExploited();
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public String getContent() {
-        return content;
-    }
+    public String getVideoLink() { return videoLink; }
+    public void setVideoLink(String videoLink) { this.videoLink = videoLink; }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+    public LocalDateTime getCreationDate() { return creationDate; }
+    public void setCreationDate(LocalDateTime creationDate) { this.creationDate = creationDate; }
 
-    public String getVideoLink() {
-        return videoLink;
-    }
+    public String getVisibility() { return visibility; }
+    public void setVisibility(String visibility) { this.visibility = visibility; }
 
-    public void setVideoLink(String videoLink) {
-        this.videoLink = videoLink;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public LocalDateTime getCreationDate() {
-        return creationDate;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
-    }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 
-    public String getVisibility() {
-        return visibility;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setVisibility(String visibility) {
-        this.visibility = visibility;
-    }
+    public Long getCreatorId() { return creatorId; }
+    public void setCreatorId(Long creatorId) { this.creatorId = creatorId; }
 
-    public String getStatus() {
-        return status;
-    }
+    public Boolean getIsFavorite() { return isFavorite; }
+    public void setIsFavorite(Boolean isFavorite) { this.isFavorite = isFavorite; }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public Boolean getIsSetAside() { return isSetAside; }
+    public void setIsSetAside(Boolean isSetAside) { this.isSetAside = isSetAside; }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Long getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(Long creatorId) {
-        this.creatorId = creatorId;
-    }
+    public Boolean getIsExploited() { return isExploited; }
+    public void setIsExploited(Boolean isExploited) { this.isExploited = isExploited; }
 }

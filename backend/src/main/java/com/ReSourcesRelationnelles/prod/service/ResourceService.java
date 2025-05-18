@@ -36,21 +36,30 @@ public class ResourceService {
     public List<ResourceDTO> getAllResources(Authentication authentication) {
         List<Resource> allResources = resourceRepository.findAll();
         List<ResourceDTO> filteredResources = new ArrayList<>();
-        User currentUser = null;
 
-        if (authentication != null && authentication.getName() != null && !authentication.getName().isBlank()) {
-            currentUser = userRepository.findByUsername(authentication.getName());
-        }
+        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
+                ? userRepository.findByUsername(authentication.getName())
+                : null;
 
         for (Resource resource : allResources) {
+            if (!resource.isActive()) continue;
 
-            if (resource.isActive()) {
-                boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
-                        resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
+            boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
+                    resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
 
-                boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+            boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
 
-                if (isAcceptedAndPublic || isOwner) {
+            if (isAcceptedAndPublic || isOwner) {
+                if (currentUser != null) {
+                    ResourceUserProgression progression = resource
+                            .getProgressions()
+                            .stream()
+                            .filter(p -> p.getUser().getId().equals(currentUser.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    filteredResources.add(new ResourceDTO(resource, progression));
+                } else {
                     filteredResources.add(new ResourceDTO(resource));
                 }
             }

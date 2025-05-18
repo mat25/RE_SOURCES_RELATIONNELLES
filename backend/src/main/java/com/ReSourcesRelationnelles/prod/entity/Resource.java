@@ -2,6 +2,8 @@ package com.ReSourcesRelationnelles.prod.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Resource {
@@ -35,6 +37,9 @@ public class Resource {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User creator;
+
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResourceUserProgression> progressions = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -122,5 +127,13 @@ public class Resource {
 
     public void setCreator(User creator) {
         this.creator = creator;
+    }
+
+    public List<ResourceUserProgression> getProgressions() {
+        return progressions;
+    }
+
+    public void setProgressions(List<ResourceUserProgression> progressions) {
+        this.progressions = progressions;
     }
 }
