@@ -30,6 +30,14 @@ public class Comment {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(nullable = false)
+    private boolean visible = true;
+
+    @ManyToOne
+    private User moderatedBy;
+
+    private LocalDateTime moderatedAt;
+
     public Long getId() {
         return id;
     }
@@ -84,5 +92,29 @@ public class Comment {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public User getModeratedBy() {
+        return moderatedBy;
+    }
+
+    public void setModeratedBy(User moderatedBy) {
+        this.moderatedBy = moderatedBy;
+    }
+
+    public LocalDateTime getModeratedAt() {
+        return moderatedAt;
+    }
+
+    public void setModeratedAt(LocalDateTime moderatedAt) {
+        this.moderatedAt = moderatedAt;
     }
 }
