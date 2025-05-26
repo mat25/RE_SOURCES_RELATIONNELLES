@@ -38,7 +38,7 @@ public class ResourceService {
         List<ResourceDTO> filteredResources = new ArrayList<>();
 
         final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
-                ? userRepository.findByUsername(authentication.getName())
+                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
                 : null;
 
         for (Resource resource : allResources) {
@@ -106,7 +106,7 @@ public class ResourceService {
             throw new BadRequestException("Utilisateur non identifié.");
         }
 
-        User user = userRepository.findByUsername(authentication.getName());
+        User user = userRepository.findByUsernameAndDeletedFalse(authentication.getName());
         if (user == null) {
             throw new NotFoundException("Utilisateur introuvable.");
         }
