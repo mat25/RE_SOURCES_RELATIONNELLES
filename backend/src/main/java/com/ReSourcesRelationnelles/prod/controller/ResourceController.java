@@ -27,6 +27,14 @@ public class ResourceController {
         return ResponseEntity.ok(resources);
     }
 
+    @Operation(summary = "Récupérer une ressource par son ID", description = "Retourne le détail d'une ressource (ResourceDTO).")
+    @ApiResponse(responseCode = "200", description = "Ressource trouvée (ResourceDTO)")
+    @GetMapping("/resources/{id}")
+    public ResponseEntity<ResourceDTO> getResourceById(@PathVariable Long id, Authentication authentication) {
+        ResourceDTO resource = resourceService.getResourceById(id, authentication);
+        return ResponseEntity.ok(resource);
+    }
+
     @Operation(summary = "Créer une ressource", description = "Permet de créer une nouvelle ressource. Retourne la ressource créée (ResourceDTO).")
     @ApiResponse(responseCode = "200", description = "Ressource créée avec succès (ResourceDTO)")
     @PostMapping("/resources")
