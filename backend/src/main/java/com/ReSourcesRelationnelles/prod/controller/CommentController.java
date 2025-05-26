@@ -24,7 +24,7 @@ public class CommentController {
     @Operation(summary = "Ajouter un commentaire à une ressource (réponse possible)", description = "Accessible uniquement aux utilisateurs authentifiés.")
     @ApiResponse(responseCode = "200", description = "Commentaire ajouté avec succès (CommentDTO)")
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER','MODERATOR')")
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long resourceId, @RequestBody CreateCommentDTO request, Authentication auth) {
         return ResponseEntity.ok(commentService.addComment(resourceId, request, auth));
     }
