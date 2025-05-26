@@ -77,7 +77,7 @@ public class ResourceService {
         }
 
         final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
-                ? userRepository.findByUsername(authentication.getName())
+                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
                 : null;
 
         boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&

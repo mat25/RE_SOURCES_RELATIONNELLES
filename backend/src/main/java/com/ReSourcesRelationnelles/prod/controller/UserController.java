@@ -6,6 +6,7 @@ import com.ReSourcesRelationnelles.prod.dto.*;
 import com.ReSourcesRelationnelles.prod.dto.user.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +29,7 @@ public class UserController {
     @Operation(summary = "Créer un nouvel utilisateur", description = "Permet de créer un compte utilisateur.")
     @ApiResponse(responseCode = "201", description = "Utilisateur créé avec succès (UserDTO)")
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> createUser(@RequestBody RegisterDTO request) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody RegisterDTO request) {
         UserDTO createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
@@ -37,7 +38,7 @@ public class UserController {
     @ApiResponse(responseCode = "201", description = "Utilisateur avec rôle créé avec succès (UserDTO)")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/admin/create")
-    public ResponseEntity<UserDTO> createUserWithRole(@RequestBody RegisterWithRoleDTO request) {
+    public ResponseEntity<UserDTO> createUserWithRole(@Valid @RequestBody RegisterWithRoleDTO request) {
         UserDTO user = userService.createUserWithRole(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -45,7 +46,7 @@ public class UserController {
     @Operation(summary = "Connexion utilisateur", description = "Permet à un utilisateur de se connecter et de recevoir un jeton JWT.")
     @ApiResponse(responseCode = "200", description = "Connexion réussie et jeton JWT retourné (TokenDTO)")
     @PostMapping("/login")
-    public ResponseEntity<TokenDTO> loginUser(@RequestBody LoginDTO request) {
+    public ResponseEntity<TokenDTO> loginUser(@Valid @RequestBody LoginDTO request) {
         TokenDTO token = userService.loginUser(request);
         return ResponseEntity.ok(token);
     }
@@ -79,7 +80,7 @@ public class UserController {
     @Operation(summary = "Mettre à jour les informations de l'utilisateur connecté", description = "Permet à un utilisateur de modifier ses propres informations.")
     @ApiResponse(responseCode = "200", description = "Informations utilisateur mises à jour (UserDTO)")
     @PatchMapping("/users/me")
-    public ResponseEntity<UserDTO> updateCurrentUser(Authentication authentication, @RequestBody UpdateUserDTO request) {
+    public ResponseEntity<UserDTO> updateCurrentUser(Authentication authentication, @Valid @RequestBody UpdateUserDTO request) {
         UserDTO updatedUser = userService.updateCurrentUser(authentication, request);
         return ResponseEntity.ok(updatedUser);
     }
@@ -88,7 +89,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Informations utilisateur mises à jour (UserDTO)")
     @PatchMapping("/users/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserDTO request) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserDTO request) {
         UserDTO updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(updatedUser);
     }

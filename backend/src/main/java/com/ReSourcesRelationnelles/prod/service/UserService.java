@@ -41,24 +41,7 @@ public class UserService {
     @Autowired
     private SecurityUtils securityUtils;
 
-    private static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-
     private void validateRegistration(RegisterDTO request) {
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new BadRequestException("Le nom est requis.");
-        }
-        if (request.getFirstName() == null || request.getFirstName().isBlank()) {
-            throw new BadRequestException("Le prénom est requis.");
-        }
-        if (request.getUsername() == null || request.getUsername().isBlank()) {
-            throw new BadRequestException("Le username est requis.");
-        }
-        if (request.getEmail() == null || !request.getEmail().matches(EMAIL_REGEX)) {
-            throw new BadRequestException("Format d'email invalide.");
-        }
-        if (request.getPassword() == null || request.getPassword().length() < 8) {
-            throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
-        }
         if (userRepository.existsByEmailAndDeletedFalse(request.getEmail())) {
             throw new BadRequestException("L'email est déjà utilisé.");
         }
@@ -117,14 +100,6 @@ public class UserService {
     }
 
     public TokenDTO loginUser(LoginDTO request) {
-
-        if (request.getUsername() == null || request.getUsername().isBlank()) {
-            throw new BadRequestException("Le username est requis.");
-        }
-
-        if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new BadRequestException("Le mot de passe est requis.");
-        }
 
         log.info("Tentative de connexion pour l'utilisateur : {}", request.getUsername());
 
@@ -199,10 +174,6 @@ public class UserService {
         }
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
 
-            if (!request.getEmail().matches(EMAIL_REGEX)) {
-                throw new BadRequestException("Format d'email invalide.");
-            }
-
             if (userRepository.existsByEmailAndDeletedFalse(request.getEmail()) && !user.getEmail().equals(request.getEmail())) {
                 throw new BadRequestException("L'email est déjà utilisé.");
             }
@@ -210,10 +181,6 @@ public class UserService {
         }
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-
-            if (request.getPassword().length() < 8) {
-                throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
-            }
 
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
