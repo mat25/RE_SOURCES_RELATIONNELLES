@@ -68,6 +68,39 @@ public class ResourceService {
         return filteredResources;
     }
 
+    public ResourceDTO getResourceById(Long resourceId, Authentication authentication) {
+        Resource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
+
+        if (!resource.isActive()) {
+            throw new NotFoundException("Ressource supprimée.");
+        }
+
+        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
+                ? userRepository.findByUsername(authentication.getName())
+                : null;
+
+        boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
+                resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
+
+        boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+
+        if (!isAcceptedAndPublic && !isOwner) {
+            throw new BadRequestException("Vous n'avez pas accès à cette ressource.");
+        }
+
+        if (currentUser != null) {
+            ResourceUserProgression progression = resource.getProgressions()
+                    .stream()
+                    .filter(p -> p.getUser().getId().equals(currentUser.getId()))
+                    .findFirst()
+                    .orElse(null);
+            return new ResourceDTO(resource, progression);
+        }
+
+        return new ResourceDTO(resource);
+    }
+
     public ResourceDTO createResource(CreateResourceDTO request, Authentication authentication) {
         if (authentication == null || authentication.getName().isBlank()) {
             throw new BadRequestException("Utilisateur non identifié.");

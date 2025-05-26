@@ -10,10 +10,14 @@ class CategoryRepository {
 
     if (response.statusCode == 200) {
       final List data = response.data;
-      return data.map<Map<String, dynamic>>((item) => {
+
+      return data
+          .where((item) => item['active'] == true)
+          .map<Map<String, dynamic>>((item) => {
         'id': item['id'],
-        'label': item['label'],
-      }).toList();
+        'label': item['name'],
+      })
+          .toList();
     } else {
       throw Exception('Échec de récupération des catégories');
     }

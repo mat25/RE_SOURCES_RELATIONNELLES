@@ -226,7 +226,7 @@ class InfoPage extends StatelessWidget {
                   context,
                   icon: Icons.person,
                   title: 'Nom',
-                  value: user.name ?? '',
+                  value: user.lastName ?? '',
                   fieldKey: 'name',
                 ),
                 const Divider(height: 1),
