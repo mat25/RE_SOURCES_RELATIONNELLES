@@ -59,10 +59,10 @@ public class UserService {
         if (request.getPassword() == null || request.getPassword().length() < 8) {
             throw new BadRequestException("Le mot de passe doit contenir au moins 8 caractères.");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmailAndDeletedFalse(request.getEmail())) {
             throw new BadRequestException("L'email est déjà utilisé.");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsernameAndDeletedFalse(request.getUsername())) {
             throw new BadRequestException("Le username est déjà utilisé.");
         }
     }
@@ -137,7 +137,7 @@ public class UserService {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        User user = userRepository.findByUsername(userDetails.getUsername());
+        User user = userRepository.findByUsernameAndDeletedFalse(userDetails.getUsername());
 
         if (user == null) {
             throw new NotFoundException("Utilisateur introuvable.");
@@ -156,7 +156,7 @@ public class UserService {
     public UserDTO getUserById(Long id) {
         log.info("Récupération de l'utilisateur avec l'ID : {}", id);
 
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("L'utilisateur avec l'ID '" + id + "' n'existe pas."));
 
         Role role = user.getRole();
@@ -169,13 +169,13 @@ public class UserService {
 
     public List<UserDTO> getAllUsers() {
         log.info("Récupération de la liste complète des utilisateurs");
-        return userRepository.findAll().stream()
+        return userRepository.findAllByDeletedFalse().stream()
                 .map(UserDTO::new)
                 .toList();
     }
 
     public UserDTO updateUser(Long id, UpdateUserDTO request) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
         Role role = user.getRole();
@@ -192,7 +192,7 @@ public class UserService {
         }
         if (request.getUsername() != null && !request.getUsername().isBlank()) {
 
-            if (userRepository.existsByUsername(request.getUsername()) && !user.getUsername().equals(request.getUsername())) {
+            if (userRepository.existsByUsernameAndDeletedFalse(request.getUsername()) && !user.getUsername().equals(request.getUsername())) {
                 throw new BadRequestException("Le username est déjà utilisé.");
             }
             user.setUsername(request.getUsername());
@@ -203,7 +203,7 @@ public class UserService {
                 throw new BadRequestException("Format d'email invalide.");
             }
 
-            if (userRepository.existsByEmail(request.getEmail()) && !user.getEmail().equals(request.getEmail())) {
+            if (userRepository.existsByEmailAndDeletedFalse(request.getEmail()) && !user.getEmail().equals(request.getEmail())) {
                 throw new BadRequestException("L'email est déjà utilisé.");
             }
             user.setEmail(request.getEmail());
@@ -243,7 +243,8 @@ public class UserService {
 
         User currentUser = securityUtils.getCurrentUser(authentication);
 
-        userRepository.delete(currentUser);
+        currentUser.setDeleted(true);
+        userRepository.save(currentUser);
 
         log.warn("Suppression du compte de l'utilisateur connecté : {}", currentUser.getUsername());
 
@@ -251,7 +252,7 @@ public class UserService {
     }
 
     public MessageDTO deleteUser(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
         Role role = user.getRole();
@@ -260,7 +261,8 @@ public class UserService {
             throw new BadRequestException("Seuls les utilisateurs avec le rôle USER peuvent être supprimés.");
         }
 
-        userRepository.delete(user);
+        user.setDeleted(true);
+        userRepository.save(user);
 
         log.warn("Suppression de l'utilisateur avec l'ID : {}", id);
 
@@ -268,7 +270,7 @@ public class UserService {
     }
 
     public UserDTO toggleUserStatus(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException("L'utilisateur '" + id + "' n'existe pas."));
 
         if (user.getRole() == null || user.getRole().getName() != RoleEnum.USER) {

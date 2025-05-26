@@ -10,8 +10,12 @@ import com.ReSourcesRelationnelles.prod.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    boolean existsByEmail(String email);
+    boolean existsByEmailAndDeletedFalse(String email);
 
-    User findByUsername(String username);
-    boolean existsByUsername(String username);
+    User findByUsernameAndDeletedFalse(String username);
+    boolean existsByUsernameAndDeletedFalse(String username);
+
+    Optional<User> findByIdAndDeletedFalse(Long id);
+
+    List<User> findAllByDeletedFalse();
 }

@@ -30,6 +30,8 @@ public class User implements UserDetails {
     // En minute
     private Integer timeBan;
     private LocalDateTime banDate;
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public User() {}
 
@@ -138,5 +140,13 @@ public class User implements UserDetails {
 
     public void setBanDate(LocalDateTime banDate) {
         this.banDate = banDate;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }
