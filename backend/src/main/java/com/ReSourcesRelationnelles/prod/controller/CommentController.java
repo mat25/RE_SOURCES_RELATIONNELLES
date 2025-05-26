@@ -35,5 +35,12 @@ public class CommentController {
     public ResponseEntity<List<CommentDTO>> getComments(@PathVariable Long resourceId) {
         return ResponseEntity.ok(commentService.getCommentsForResource(resourceId));
     }
+
+    @Operation(summary = "Masquer un commentaire", description = "Réservé aux modérateurs et administrateurs.")
+    @PostMapping("/{commentId}/moderate")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ResponseEntity<CommentDTO> moderateComment(@PathVariable Long commentId, Authentication auth) {
+        return ResponseEntity.ok(commentService.moderateComment(commentId, auth));
+    }
 }
 
