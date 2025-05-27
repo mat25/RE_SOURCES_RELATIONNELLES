@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../repositories/user_repository.dart';
 import '../core/api/api_client.dart';
@@ -21,7 +22,8 @@ class SessionProvider with ChangeNotifier {
   User? get user => _user;
   String? get token => _token;
   bool get isLoggedIn => _user != null;
-  int? get userId => _user?.id;
+  int? _userId;
+  int? get userId => _userId;
 
   int _currentIndex = 2;
   int get currentIndex => _currentIndex;
@@ -32,6 +34,9 @@ class SessionProvider with ChangeNotifier {
   }
 
   Future<void> checkSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('auth_token');
+    debugPrint('Token restauré : \$_token');
     if (_token != null) {
       await loadCurrentUser();
     }
@@ -47,25 +52,29 @@ class SessionProvider with ChangeNotifier {
     }
 
     try {
-      final token = await _userRepository.login(
+      final loginResult = await _userRepository.login(
         username: username!,
         password: password!,
       );
 
-      _token = token;
+      _token = loginResult.token;
+      _userId = loginResult.userId;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', _token!);
+
+      debugPrint('Token reçu : \${loginResult.token}');
+      debugPrint('ID utilisateur : \${loginResult.userId}');
+
       await loadCurrentUser();
 
       _loginMessage = "Connexion réussie !";
       _isLoginError = false;
       notifyListeners();
 
-      Future.delayed(const Duration(seconds: 3), () {
-        clearLoginMessage();
-      });
-
+      Future.delayed(const Duration(seconds: 3), clearLoginMessage);
     } catch (e) {
-      debugPrint('Erreur de connexion : $e');
-      _loginMessage = "Identifiants incorrects";
+      debugPrint('Erreur de connexion : \$e');
+      _loginMessage = "Identifiants incorrects ou erreur réseau.";
       _isLoginError = true;
       notifyListeners();
     }
@@ -78,7 +87,7 @@ class SessionProvider with ChangeNotifier {
       _user = await _userRepository.getCurrentUser(_token!);
       notifyListeners();
     } catch (e) {
-      debugPrint('Erreur lors de la récupération de l\'utilisateur : $e');
+      debugPrint("Erreur lors de la récupération de l'utilisateur : \$e");
     }
   }
 
@@ -86,9 +95,7 @@ class SessionProvider with ChangeNotifier {
     if (_token == null || _user == null) return false;
 
     try {
-      final bool isUsernameChange = field == 'username';
-      final oldUsername = _user!.username;
-
+      final isUsernameChange = field == 'username';
       final updatedUser = await _userRepository.updateUser(_token!, {field: newValue});
       _user = updatedUser;
 
@@ -100,7 +107,7 @@ class SessionProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Erreur mise à jour profil : $e');
+      debugPrint('Erreur mise à jour profil : \$e');
       return false;
     }
   }
@@ -111,11 +118,13 @@ class SessionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void logout() {
+  Future<void> logout() async {
     _user = null;
     _token = null;
     username = null;
     password = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
     notifyListeners();
   }
 }

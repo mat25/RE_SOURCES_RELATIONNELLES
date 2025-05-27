@@ -59,7 +59,6 @@ class _LoginFormState extends State<LoginForm> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Logique de soumission ici plus tard
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
