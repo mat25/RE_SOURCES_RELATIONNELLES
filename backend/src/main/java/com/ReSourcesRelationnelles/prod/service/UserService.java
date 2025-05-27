@@ -50,7 +50,6 @@ public class UserService {
         }
     }
 
-
     public UserDTO createUser(RegisterDTO request) {
         validateRegistration(request);
 
