@@ -1,30 +1,48 @@
 <template>
   <div class="form-page">
     <n-card class="form-card" title="Connexion" size="huge">
-      <n-form @submit.prevent="login" :label-width="100">
+      <n-form @submit.prevent.native="handleSubmit" :label-width="100">
         <n-space vertical size="large">
           <div class="form-control">
-            <n-form-item label="Email" :error="errors.email">
-              <n-input v-model="credentials.email" @input="validateEmail" placeholder="Entrez votre email" class="input-field" />
+            <n-form-item
+              label="Nom d'utilisateur"
+              :validation-status="usernameStatus"
+              :feedback="errors.username"
+            >
+              <n-input
+                v-model="credentials.username"
+                placeholder="Entrez votre nom d'utilisateur"
+                class="input-field"
+                @focus="clearError('username')"
+              />
             </n-form-item>
-            <div v-if="errors.email" class="error-message">{{ errors.email }}</div>
           </div>
 
           <div class="form-control">
-            <n-form-item label="Mot de passe" :error="errors.password">
-              <n-input type="password" v-model="credentials.password" @input="validatePassword" placeholder="Entrez votre mot de passe" class="input-field" />
+            <n-form-item
+              label="Mot de passe"
+              :validation-status="passwordStatus"
+              :feedback="errors.password"
+            >
+              <n-input
+                type="password"
+                v-model="credentials.password"
+                placeholder="Entrez votre mot de passe"
+                class="input-field"
+                @focus="clearError('password')"
+              />
             </n-form-item>
-            <div v-if="errors.password" class="error-message">{{ errors.password }}</div>
           </div>
 
           <n-form-item>
-            <n-button type="primary" block @click="login" class="submit-button">
+            <n-button type="primary" block attr-type="submit" :loading="loading" class="submit-button">
               Connexion
             </n-button>
           </n-form-item>
         </n-space>
       </n-form>
     </n-card>
+
     <div class="signup-link">
       <p>Pas encore de compte ? <router-link to="/register">Créez-en un ici</router-link></p>
     </div>
@@ -32,10 +50,11 @@
 </template>
 
 <script>
-import { NCard, NForm, NFormItem, NInput, NButton, NSpace } from 'naive-ui';
+import { NCard, NForm, NFormItem, NInput, NButton, NSpace, useMessage } from 'naive-ui';
+import axios from 'axios';
 
 export default {
-  name: 'login',
+  name: 'Login',
   components: {
     NCard,
     NForm,
@@ -44,49 +63,112 @@ export default {
     NButton,
     NSpace
   },
+  setup() {
+    const message = useMessage();
+    return { message };
+  },
   data() {
     return {
       credentials: {
-        email: '',
-        password: '',
+        username: '',
+        password: ''
       },
       errors: {
-        email: '',
-        password: '',
+        username: '',
+        password: ''
       },
+      loading: false,
+      formSubmitted: false // ⚠️ Ajouté pour contrôler l'affichage des erreurs
+    };
+  },
+  computed: {
+    usernameStatus() {
+      return this.formSubmitted && this.errors.username ? 'error' : undefined;
+    },
+    passwordStatus() {
+      return this.formSubmitted && this.errors.password ? 'error' : undefined;
     }
   },
   methods: {
-    validateEmail() {
-      this.errors.email = '';
-      if (!this.credentials.email) {
-        this.errors.email = 'Veuillez saisir votre email.';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.credentials.email)) {
-        this.errors.email = 'Email invalide.';
-      }
-    },
-    validatePassword() {
-      this.errors.password = '';
-      if (!this.credentials.password) {
-        this.errors.password = 'Veuillez saisir votre mot de passe.';
-      }
-    },
-    login() {
-      this.validateEmail();
-      this.validatePassword();
+    validateForm() {
+      let isValid = true;
 
-      if (this.errors.email || this.errors.password) {
+      if (!this.credentials.username.trim()) {
+        this.errors.username = "Le nom d'utilisateur est requis.";
+        isValid = false;
+      } else if (this.credentials.username.trim().length < 3) {
+        this.errors.username = "Le nom d'utilisateur doit contenir au moins 3 caractères.";
+        isValid = false;
+      } else {
+        this.errors.username = '';
+      }
+
+      if (!this.credentials.password.trim()) {
+        this.errors.password = 'Le mot de passe est requis.';
+        isValid = false;
+      } else if (this.credentials.password.trim().length < 6) {
+        this.errors.password = 'Le mot de passe doit contenir au moins 6 caractères.';
+        isValid = false;
+      } else {
+        this.errors.password = '';
+      }
+
+      return isValid;
+    },
+
+    clearError(field) {
+      if (this.formSubmitted && this.errors[field]) {
+        this.errors[field] = '';
+      }
+    },
+
+    async handleSubmit() {
+      this.formSubmitted = true; // ⚠️ On active les erreurs visibles
+
+      const isValid = this.validateForm();
+
+      if (!isValid) {
+        this.message.error('Veuillez corriger les erreurs dans le formulaire.');
         return;
       }
 
-      console.log('Tentative de connexion:', this.credentials);
-      // Ici, vous ferez l'appel à votre backend pour la connexion
+      this.loading = true;
+
+      try {
+        const response = await axios.post('/api/login', {
+          username: this.credentials.username.trim(),
+          password: this.credentials.password.trim()
+        });
+
+        localStorage.setItem('token', response.data.token);
+
+        this.message.success('Connexion réussie !');
+        this.$router.push('/');
+      } catch (error) {
+        if (error.response) {
+          const status = error.response.status;
+          if (status === 401 || status === 400) {
+            this.errors.password = "Nom d'utilisateur ou mot de passe incorrect.";
+            this.message.error("Nom d'utilisateur ou mot de passe incorrect.");
+          } else if (status === 404) {
+            this.message.error('Le service de connexion est indisponible (Erreur 404).');
+          } else {
+            this.message.error('Une erreur serveur est survenue.');
+          }
+        } else {
+          this.message.error("Impossible de se connecter au serveur.");
+        }
+      } finally {
+        this.loading = false;
+      }
     }
   }
-}
+};
 </script>
 
+
 <style scoped>
+/* Le style reste inchangé */
 .form-page {
   display: flex;
   justify-content: center;
@@ -136,11 +218,12 @@ export default {
   transform: scale(0.98);
 }
 
-.error-message {
+/* Le message d'erreur est géré par n-form-item feedback */
+/* .error-message {
   color: red;
   font-size: 14px;
   margin-top: 5px;
-}
+} */
 
 .signup-link {
   margin-top: 20px;

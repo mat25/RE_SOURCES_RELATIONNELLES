@@ -75,6 +75,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import axios from 'axios'
 
 const formRef = ref(null)
 const message = useMessage()
@@ -112,11 +113,26 @@ const rules = {
 }
 
 const submitInscription = async () => {
-  formRef.value?.validate((errors) => {
+  formRef.value?.validate(async (errors) => {
     if (!errors) {
-      // Envoi API fictif
-      message.success('Inscription réussie 🎉')
-      // Ici, tu fais une vraie requête API
+      try {
+        const response = await axios.post('/api/register', {
+          firstName: credentials.firstName,
+          name: credentials.lastName,
+          username: credentials.username,
+          email: credentials.email,
+          password: credentials.password,
+        })
+
+        const token = response.data.token
+        localStorage.setItem('token', token)
+
+        message.success('Inscription réussie 🎉')
+        this.$router.push('/');
+      } catch (err) {
+        console.error(err)
+        message.error('Erreur lors de l’inscription')
+      }
     } else {
       message.error('Veuillez corriger les erreurs')
     }
