@@ -127,4 +127,11 @@ class SessionProvider with ChangeNotifier {
     await prefs.remove('auth_token');
     notifyListeners();
   }
+
+  Future<String> deleteAccount() async {
+    if (_token == null) throw Exception("Token manquant");
+    final message = await _userRepository.deleteUser(_token!);
+    await logout();
+    return message;
+  }
 }

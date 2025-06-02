@@ -117,11 +117,15 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes Ressources'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'Favoris'),
             Tab(text: 'Mis de côté'),

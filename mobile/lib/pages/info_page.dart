@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
+import 'main_page.dart';
 
 class InfoPage extends StatelessWidget {
   const InfoPage({Key? key}) : super(key: key);
@@ -109,7 +110,7 @@ class InfoPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
+  void _showDeleteAccountDialog(BuildContext context, SessionProvider session) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -124,21 +125,37 @@ class InfoPage extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Compte supprimé (fictivement)'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-              // TODO: appel API pour suppression + déconnexion
+              try {
+                final message = await session.deleteAccount();
+
+                await session.logout();
+
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => MainPage(session: session)),
+                        (route) => false,
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
             },
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildInfoTile(BuildContext context, {
     required IconData icon,
@@ -261,7 +278,7 @@ class InfoPage extends StatelessWidget {
           const SizedBox(height: 30),
           Center(
             child: ElevatedButton.icon(
-              onPressed: () => _showDeleteAccountDialog(context),
+              onPressed: () => _showDeleteAccountDialog(context, session),
               icon: const Icon(Icons.delete_forever),
               label: const Text('Supprimer mon compte'),
               style: ElevatedButton.styleFrom(

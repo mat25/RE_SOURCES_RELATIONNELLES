@@ -57,4 +57,19 @@ class ApiClient {
     }
   }
 
+  Future<Response> delete(String path, {String? token}) async {
+    try {
+      return await _dio.delete(
+        path,
+        options: Options(
+          headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+        ),
+      );
+    } catch (e) {
+      Logger.log('Erreur DELETE ($path): $e');
+      rethrow;
+    }
+  }
+
+
 }

@@ -59,4 +59,15 @@ class UserRepository {
       throw Exception('Échec de la connexion');
     }
   }
+
+  Future<String> deleteUser(String token) async {
+    final response = await _client.delete('/users/me', token: token);
+
+    if (response.statusCode == 200 && response.data['message'] != null) {
+      return response.data['message'];
+    } else {
+      throw Exception("Erreur lors de la suppression du compte");
+    }
+  }
+
 }
