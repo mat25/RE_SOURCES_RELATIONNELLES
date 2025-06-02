@@ -32,7 +32,7 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
     isLoading = true;
 
     _repository = ResourceRepository(ApiClient());
-    _fetchStatuses(); // Appel essentiel
+    _fetchStatuses();
   }
 
   Future<void> _fetchStatuses() async {

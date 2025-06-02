@@ -1,4 +1,5 @@
 import '../core/api/api_client.dart';
+import '../models/login_response.dart';
 import '../models/user.dart';
 
 class UserRepository {
@@ -41,14 +42,19 @@ class UserRepository {
     }
   }
 
-  Future<String> login({required String username, required String password}) async {
+  Future<LoginResponse> login({
+    required String username,
+    required String password,
+  }) async {
     final response = await _client.post('/login', {
       'username': username,
       'password': password,
     });
 
-    if (response.statusCode == 200 && response.data['token'] != null) {
-      return response.data['token'];
+    if (response.statusCode == 200 &&
+        response.data['token'] != null &&
+        response.data['id'] != null) {
+      return LoginResponse.fromJson(response.data);
     } else {
       throw Exception('Échec de la connexion');
     }
