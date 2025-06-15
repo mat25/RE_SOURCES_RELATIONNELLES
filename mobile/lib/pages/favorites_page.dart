@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/models/resource.dart';
 import 'package:mobile/pages/login_page.dart';
-import 'package:mobile/pages/detail_resource.dart';
 import 'package:mobile/repositories/resource_repository.dart';
+import 'package:mobile/core/api/api_client.dart';
+import 'package:mobile/providers/session_provider.dart';
+import 'package:mobile/widgets/favorites/resource_list.dart';
 import 'package:provider/provider.dart';
-import '../core/api/api_client.dart';
-import '../providers/session_provider.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -54,66 +54,12 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
     }
   }
 
-  Widget _buildList(List<Resource> list) {
-    if (list.isEmpty) {
-      return const Center(child: Text("Aucune ressource disponible."));
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final res = list[index];
-
-        return GestureDetector(
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ResourceDetailPage(
-                  resource: res,
-                  token: Provider.of<SessionProvider>(context, listen: false).token,
-                ),
-              ),
-            );
-            await _loadResources();
-          },
-          child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    res.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  Text("Catégorie : ${res.category}"),
-                  Text("Statut : ${res.status}"),
-                  Text("Créée le : ${res.creationDate.toLocal().toString().split(' ')[0]}"),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<SessionProvider>(context);
 
     if (!session.isLoggedIn) return const LoginPage();
-
-    final token = session.token;
-    if (token == null) {
-      return const Center(child: Text("Non connecté"));
-    }
+    if (session.token == null) return const Center(child: Text("Non connecté"));
 
     return Scaffold(
       appBar: AppBar(
@@ -140,9 +86,9 @@ class _FavoritesPageState extends State<FavoritesPage> with TickerProviderStateM
           : TabBarView(
         controller: _tabController,
         children: [
-          _buildList(favorites),
-          _buildList(setAside),
-          _buildList(exploited),
+          ResourceList(resources: favorites, onRefresh: _loadResources),
+          ResourceList(resources: setAside, onRefresh: _loadResources),
+          ResourceList(resources: exploited, onRefresh: _loadResources),
         ],
       ),
     );

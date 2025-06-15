@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../repositories/user_repository.dart';
-import '../core/api/api_client.dart';
-import '../providers/session_provider.dart';
+import '../../repositories/user_repository.dart';
+import '../../core/api/api_client.dart';
+import '../../providers/session_provider.dart';
 
 class RegisterForm extends StatefulWidget {
   const RegisterForm({super.key});
@@ -56,10 +56,8 @@ class _RegisterFormState extends State<RegisterForm> {
 
       _showSnackBar('Compte créé avec succès ! Connexion...');
 
-      session.username = pseudo;
-      session.password = password;
-
-      await session.login();
+      session.setCredentials(pseudo, password);
+      final success = await session.login(pseudo, password);
 
     } catch (e) {
       _showSnackBar('Erreur lors de l’inscription : $e');

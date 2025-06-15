@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/session_provider.dart';
+import '../../providers/session_provider.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -10,19 +10,30 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
+  String _username = '';
+  String _password = '';
   bool _obscurePassword = true;
   bool _isLoading = false;
 
   void _handleLogin(SessionProvider session) async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    await session.login();
+    final result = await session.login(_username, _password);
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.isError ? Colors.red : Colors.green,
+        ),
+      );
+    }
+
+    if (!result.isError && context.mounted) {
+      Navigator.pushReplacementNamed(context, '/');
+    }
   }
 
   void _showPasswordResetDialog(BuildContext context) {
@@ -59,6 +70,7 @@ class _LoginFormState extends State<LoginForm> {
             ),
             ElevatedButton(
               onPressed: () {
+                // TODO: Intégrer envoi réel
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -103,8 +115,8 @@ class _LoginFormState extends State<LoginForm> {
                   labelText: 'Pseudo',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (value) => session.username = value,
+                keyboardType: TextInputType.text,
+                onChanged: (value) => _username = value.trim(),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -118,13 +130,11 @@ class _LoginFormState extends State<LoginForm> {
                       _obscurePassword ? Icons.visibility : Icons.visibility_off,
                     ),
                     onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
+                      setState(() => _obscurePassword = !_obscurePassword);
                     },
                   ),
                 ),
-                onChanged: (value) => session.password = value,
+                onChanged: (value) => _password = value.trim(),
               ),
               const SizedBox(height: 12),
               Center(
@@ -153,10 +163,7 @@ class _LoginFormState extends State<LoginForm> {
                       : const Icon(Icons.login, color: Colors.white),
                   label: Text(
                     _isLoading ? 'Connexion...' : 'Se connecter',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,

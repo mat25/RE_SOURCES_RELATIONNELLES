@@ -4,6 +4,8 @@ import 'package:mobile/pages/profil_page.dart';
 import 'package:mobile/pages/resources_page.dart';
 import 'package:mobile/pages/favorites_page.dart';
 import 'package:mobile/providers/session_provider.dart';
+import 'package:mobile/widgets/main/app_title_bar.dart';
+import 'package:mobile/widgets/main/bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
@@ -16,16 +18,12 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final List<Widget> _pages = [
-    const ResourcesPage(),
-    const FavoritesPage(),
-    const HomePage(),
-    const ProfilPage(),
+  final List<Widget> _pages = const [
+    ResourcesPage(),
+    FavoritesPage(),
+    HomePage(),
+    ProfilPage(),
   ];
-
-  void _onItemTapped(int index) {
-    widget.session.goToTab(index);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,48 +32,11 @@ class _MainPageState extends State<MainPage> {
         int selectedIndex = session.currentIndex;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Center(
-              child: Text(
-                '(RE)Sources Relationnelles',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-          ),
+          appBar: const AppTitleBar(),
           body: _pages[selectedIndex],
-          bottomNavigationBar: BottomNavigationBar(
+          bottomNavigationBar: BottomNavBar(
             currentIndex: selectedIndex,
             onTap: session.goToTab,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.deepPurple,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.grey.shade400,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.folder),
-                label: 'Ressources',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.star),
-                label: 'Favoris',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Accueil',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profil',
-              ),
-            ],
           ),
         );
       },

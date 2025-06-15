@@ -1,262 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
-import 'main_page.dart';
+import '../widgets/info/delete_account_dialog.dart';
+import '../widgets/info/edit_field_dialog.dart';
+import '../widgets/info/change_password_dialog.dart';
+import '../widgets/info/info_tile.dart';
+import '../widgets/info/user_card.dart';
+import '../widgets/info/section_title.dart';
 
 class InfoPage extends StatelessWidget {
   const InfoPage({Key? key}) : super(key: key);
-
-  void _showEditDialog(BuildContext context, String fieldName, String currentValue, String fieldKey) {
-    final TextEditingController controller = TextEditingController(text: currentValue);
-    final session = Provider.of<SessionProvider>(context, listen: false);
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text('Modifier $fieldName'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'Nouveau $fieldName',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Annuler'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton.icon(
-            label: const Text('Enregistrer'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              final newValue = controller.text.trim();
-              Navigator.pop(context);
-
-              if (newValue.isEmpty || newValue == currentValue) return;
-
-              final success = await session.updateProfileField(fieldKey, newValue);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success
-                      ? '$fieldName mis à jour avec succès'
-                      : 'Erreur lors de la mise à jour de $fieldName'),
-                  backgroundColor: success ? Colors.green : Colors.red,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPasswordChangeDialog(BuildContext context) {
-    final currentController = TextEditingController();
-    final newController = TextEditingController();
-    final confirmController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text('Changer le mot de passe'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: currentController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mot de passe actuel'),
-            ),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
-            ),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirmer le mot de passe'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Annuler'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-            child: const Text('Modifier', style: TextStyle(color: Colors.white)),
-            onPressed: () {
-              // TODO: logique de changement de mot de passe
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mot de passe mis à jour (fictivement)'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteAccountDialog(BuildContext context, SessionProvider session) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text('Supprimer le compte'),
-        content: const Text('Cette action est irréversible. Êtes-vous sûr(e) de vouloir supprimer votre compte ?'),
-        actions: [
-          TextButton(
-            child: const Text('Annuler'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.white)),
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                final message = await session.deleteAccount();
-
-                await session.logout();
-
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => MainPage(session: session)),
-                        (route) => false,
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message), backgroundColor: Colors.green),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  Widget _buildInfoTile(BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String value,
-    required String fieldKey,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.deepPurple),
-      title: Text(title),
-      subtitle: Text(value.isNotEmpty ? value : 'Non précisé'),
-      trailing: IconButton(
-        icon: const Icon(Icons.edit, color: Colors.deepPurple),
-        onPressed: () => _showEditDialog(context, title, value, fieldKey),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<SessionProvider>(context);
     final user = session.user;
 
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text('Aucune information disponible')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mes Informations'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        elevation: 0,
       ),
       backgroundColor: Colors.grey[200],
-      body: user == null
-          ? const Center(child: Text('Aucune information disponible'))
-          : ListView(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Text(
-                    user.username ?? 'Nom d’utilisateur',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    user.email ?? '',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          UserCard(user: user),
           const SizedBox(height: 20),
-          const Text(
-            'Informations personnelles',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
-            ),
-          ),
+          const SectionTitle('Informations personnelles'),
           const SizedBox(height: 10),
           Card(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Column(
               children: [
-                _buildInfoTile(
-                  context,
+                InfoTile(
                   icon: Icons.account_circle,
                   title: 'Nom d’utilisateur',
                   value: user.username ?? '',
                   fieldKey: 'username',
                 ),
                 const Divider(height: 1),
-                _buildInfoTile(
-                  context,
+                InfoTile(
                   icon: Icons.person,
                   title: 'Nom',
                   value: user.lastName ?? '',
                   fieldKey: 'name',
                 ),
                 const Divider(height: 1),
-                _buildInfoTile(
-                  context,
+                InfoTile(
                   icon: Icons.person_outline,
                   title: 'Prénom',
                   value: user.firstName ?? '',
                   fieldKey: 'firstName',
                 ),
                 const Divider(height: 1),
-                _buildInfoTile(
-                  context,
+                InfoTile(
                   icon: Icons.email,
                   title: 'Email',
                   value: user.email ?? '',
@@ -269,7 +74,7 @@ class InfoPage extends StatelessWidget {
                   subtitle: const Text('••••••••'),
                   trailing: IconButton(
                     icon: const Icon(Icons.edit, color: Colors.deepPurple),
-                    onPressed: () => _showPasswordChangeDialog(context),
+                    onPressed: () => showPasswordChangeDialog(context),
                   ),
                 ),
               ],
@@ -278,7 +83,7 @@ class InfoPage extends StatelessWidget {
           const SizedBox(height: 30),
           Center(
             child: ElevatedButton.icon(
-              onPressed: () => _showDeleteAccountDialog(context, session),
+              onPressed: () => showDeleteAccountDialog(context, session),
               icon: const Icon(Icons.delete_forever),
               label: const Text('Supprimer mon compte'),
               style: ElevatedButton.styleFrom(

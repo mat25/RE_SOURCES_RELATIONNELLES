@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/resource.dart';
 import '../repositories/resource_repository.dart';
+import '../repositories/comment_repository.dart';
+import '../models/comment.dart';
 import '../core/api/api_client.dart';
+import '../widgets/resource/info_card.dart';
+import '../widgets/resource/content_card.dart';
+import '../widgets/resource/status_buttons.dart';
+import '../widgets/resource/comment_section.dart';
 
 class ResourceDetailPage extends StatefulWidget {
   final Resource resource;
@@ -18,21 +24,27 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
   late bool isFavorite;
   late bool isBookmarked;
   late bool isUsed;
-  late bool isLoading;
+  bool isLoading = true;
   final TextEditingController _commentController = TextEditingController();
   late ResourceRepository _repository;
+  late CommentRepository _commentRepository;
+  List<Comment> comments = [];
 
   @override
   void initState() {
     super.initState();
-
     isFavorite = false;
     isBookmarked = false;
     isUsed = false;
-    isLoading = true;
-
     _repository = ResourceRepository(ApiClient());
-    _fetchStatuses();
+    _commentRepository = CommentRepository(ApiClient());
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await _fetchStatuses();
+    await _fetchComments();
+    setState(() => isLoading = false);
   }
 
   Future<void> _fetchStatuses() async {
@@ -46,11 +58,34 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
         isFavorite = favorites.any((r) => r.id == id);
         isBookmarked = setAside.any((r) => r.id == id);
         isUsed = exploited.any((r) => r.id == id);
-        isLoading = false;
       });
     } catch (e) {
-      _showError('Erreur lors du chargement des statuts : $e');
-      setState(() => isLoading = false);
+      _showError('Erreur statuts : $e');
+    }
+  }
+
+  Future<void> _fetchComments() async {
+    try {
+      final result = await _commentRepository.fetchComments(widget.resource.id, token: widget.token);
+      setState(() => comments = result);
+    } catch (e) {
+      _showError('Erreur commentaires : $e');
+    }
+  }
+
+  Future<void> _submitComment() async {
+    final content = _commentController.text.trim();
+    if (content.isEmpty) return;
+    try {
+      await _commentRepository.postComment(
+        resourceId: widget.resource.id,
+        content: content,
+        token: widget.token!,
+      );
+      _commentController.clear();
+      await _fetchComments();
+    } catch (e) {
+      _showError('Erreur envoi commentaire : $e');
     }
   }
 
@@ -59,7 +94,7 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
       await _repository.toggleFavorite(widget.resource.id, token: widget.token);
       setState(() => isFavorite = !isFavorite);
     } catch (e) {
-      _showError('Échec du changement d’état "favori"');
+      _showError('Erreur favori');
     }
   }
 
@@ -68,7 +103,7 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
       await _repository.toggleSetAside(widget.resource.id, token: widget.token);
       setState(() => isBookmarked = !isBookmarked);
     } catch (e) {
-      _showError('Échec du changement d’état "mis de côté"');
+      _showError('Erreur mise de côté');
     }
   }
 
@@ -77,14 +112,12 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
       await _repository.toggleExploited(widget.resource.id, token: widget.token);
       setState(() => isUsed = !isUsed);
     } catch (e) {
-      _showError('Échec du changement d’état "exploité"');
+      _showError('Erreur exploité');
     }
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -103,173 +136,36 @@ class _ResourceDetailPageState extends State<ResourceDetailPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _infoTile(Icons.calendar_today, 'Créée le', resource.creationDate.toLocal().toString().split(' ')[0]),
-                    _infoTile(Icons.category, 'Catégorie', resource.category),
-                    _infoTile(Icons.label, 'Type', resource.type ?? 'Null'),
-                    _infoTile(Icons.check_circle_outline, 'Statut', resource.status),
-                    _infoTile(Icons.visibility, 'Visibilité', resource.visibility),
-                  ],
-                ),
-              ),
-            ),
-
+            ResourceInfoCard(resource: resource),
             const SizedBox(height: 20),
-
-            Card(
-              color: Colors.deepPurple.shade50,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Contenu',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      resource.content,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    if (resource.videoLink?.isNotEmpty == true) ...[
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () async {
-                          final url = Uri.tryParse(resource.videoLink!);
-                          if (url != null && await canLaunchUrl(url)) {
-                            await launchUrl(url);
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            const Icon(Icons.play_circle_fill, color: Colors.blue),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                resource.videoLink!,
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ]
-                  ],
-                ),
-              ),
-            ),
-
+            ResourceContentCard(resource: resource),
             const SizedBox(height: 30),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _actionButton(
-                  icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                  label: 'Mettre de côté',
-                  color: Colors.deepPurple,
-                  onTap: _toggleSetAside,
-                ),
-                _actionButton(
-                  icon: isFavorite ? Icons.favorite : Icons.favorite_border,
-                  label: 'Favori',
-                  color: Colors.red,
-                  onTap: _toggleFavorite,
-                ),
-                _actionButton(
-                  icon: isUsed ? Icons.check_box : Icons.check_box_outline_blank,
-                  label: 'Exploité',
-                  color: Colors.green,
-                  onTap: _toggleExploited,
-                ),
-              ],
+            StatusButtons(
+              isBookmarked: isBookmarked,
+              isFavorite: isFavorite,
+              isUsed: isUsed,
+              onBookmarkToggle: _toggleSetAside,
+              onFavoriteToggle: _toggleFavorite,
+              onUsedToggle: _toggleExploited,
             ),
-
             const SizedBox(height: 30),
-
-            const Text(
-              'Ajouter un commentaire',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-
-            TextField(
-              controller: _commentController,
-              keyboardType: TextInputType.multiline,
-              minLines: 1,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'Votre commentaire...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () {
-                  final message = _commentController.text;
-                  if (message.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Commentaire ajouté : "$message"')),
-                    );
-                    _commentController.clear();
-                  }
-                },
-                child: const Text('Envoyer'),
-              ),
+            CommentSection(
+              comments: comments,
+              commentController: _commentController,
+              onSubmit: _submitComment,
+              onReply: (String content, int parentId) async {
+                await _commentRepository.postComment(
+                  resourceId: widget.resource.id,
+                  content: content,
+                  parentId: parentId,
+                  token: widget.token!,
+                );
+                await _fetchComments();
+              },
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _infoTile(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.deepPurple, size: 20),
-          const SizedBox(width: 10),
-          Text(
-            '$label : ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color color = Colors.black,
-  }) {
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(icon, color: color),
-          onPressed: onTap,
-        ),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
     );
   }
 }
