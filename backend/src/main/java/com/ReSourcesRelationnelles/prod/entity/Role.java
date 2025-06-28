@@ -31,6 +31,11 @@ public class Role {
 
     public Role() {}
 
+    public Role(RoleEnum name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
     // Getter et Setter
     public Integer getId() {
         return id;

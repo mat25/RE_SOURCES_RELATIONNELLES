@@ -9,6 +9,18 @@ public class CreateResourceDTO {
     private String type;
     private Long categoryId;
 
+    public CreateResourceDTO() {}
+
+    public CreateResourceDTO(String title, String content, String videoLink, String visibility, String status, String type, Long categoryId) {
+        this.title = title;
+        this.content = content;
+        this.videoLink = videoLink;
+        this.visibility = visibility;
+        this.status = status;
+        this.type = type;
+        this.categoryId = categoryId;
+    }
+
     public String getTitle() {
         return title;
     }

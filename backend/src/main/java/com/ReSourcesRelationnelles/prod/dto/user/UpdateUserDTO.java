@@ -17,6 +17,16 @@ public class UpdateUserDTO {
     )
     private String password;
 
+    public UpdateUserDTO() {}
+
+    public UpdateUserDTO(String name, String firstName,String username, String email, String password) {
+        this.name = name;
+        this.username = username;
+        this.firstName = firstName;
+        this.email = email;
+        this.password = password;
+    }
+
     // Getters et setters
     public String getName() {
         return name;
