@@ -1,313 +1,366 @@
 <template>
-  <div class="cover-photo">
-    <img src="https://images.unsplash.com/photo-1503264116251-35a269479413" alt="cover" />
-    <n-avatar
-      class="profile-avatar"
-      round
-      size="100"
-      src="https://randomuser.me/api/portraits/men/1.jpg"
-    />
-  </div>
+  <div class="profile-page">
+    <div class="profile-header">
+      <div class="cover-wrapper">
+        <img :src="user.coverUrl || defaultCover" class="cover-image" />
+        <input type="file" @change="updateCover" class="upload-cover" />
+      </div>
 
-  <div class="profile-container">
-    <!-- Colonne gauche : Infos utilisateur -->
-    <div class="left-column">
-      <n-card :hoverable="true" class="profile-card">
-        <h2>Profil</h2>
-        <div class="profile-info" v-if="!editingProfile">
-          <p><strong>Nom :</strong> {{ user.name }}</p>
-          <p><strong>Prénom :</strong> {{ user.firstName }}</p>
-          <p><strong>Email :</strong> {{ user.email }}</p>
-          <p><strong>Date inscription :</strong> 11/04/2025</p>
-          <p><strong>Mot de passe :</strong> ********
-            <n-button text @click="showPasswordModal">Modifier</n-button>
-          </p>
-        </div>
+      <div class="avatar-wrapper">
+        <n-avatar :size="100" round :src="user.avatarUrl || defaultAvatar" />
+        <input type="file" @change="updateAvatar" class="upload-avatar" />
+      </div>
 
-        <!-- Formulaire de modification de profil -->
-        <div v-if="editingProfile">
-          <n-form @submit.prevent="saveProfileChanges">
-            <n-form-item label="Nom">
-              <n-input v-model="user.name" placeholder="Entrez votre nom" />
-            </n-form-item>
-            <n-form-item label="Prénom">
-              <n-input v-model="user.firstName" placeholder="Entrez votre prénom" />
-            </n-form-item>
-            <n-form-item label="Email">
-              <n-input v-model="user.email" placeholder="Entrez votre email" />
-            </n-form-item>
-            <n-space justify="center">
-              <n-button type="primary" @click="saveProfileChanges">Enregistrer</n-button>
-              <n-button @click="cancelEditProfile">Annuler</n-button>
-            </n-space>
-          </n-form>
-        </div>
-
-        <n-space justify="center" style="margin-top: 20px;">
-          <n-button type="primary" @click="editProfile">Modifier</n-button>
-          <n-button @click="viewSettings">Paramètres</n-button>
-        </n-space>
-      </n-card>
+      <h2 class="profile-name">{{ user.firstName }} {{ user.name }}</h2>
     </div>
 
-    <!-- Colonne droite : Favoris + Stats -->
-    <div class="right-column">
-      <n-card class="favorites-section" title="Ressources mises en favoris">
+    <n-card class="profile-card" title="Informations personnelles" hoverable>
+      <template v-if="!editingProfile">
+        <p><strong>Nom :</strong> {{ user.name }}</p>
+        <p><strong>Prénom :</strong> {{ user.firstName }}</p>
+        <p><strong>Email :</strong> {{ user.email }}</p>
+        <n-space justify="space-between">
+          <n-button type="primary" @click="editingProfile = true">Modifier</n-button>
+          <n-button tertiary @click="showPasswordModal = true">Changer mot de passe</n-button>
+        </n-space>
+      </template>
+      <template v-else>
+        <n-form @submit.prevent="saveProfile">
+          <n-form-item label="Nom"><n-input v-model:value="edited.name" /></n-form-item>
+          <n-form-item label="Prénom"><n-input v-model:value="edited.firstName" /></n-form-item>
+          <n-form-item label="Email"><n-input v-model:value="edited.email" /></n-form-item>
+          <n-space>
+            <n-button type="primary" @click="saveProfile">Enregistrer</n-button>
+            <n-button @click="cancelEdit">Annuler</n-button>
+          </n-space>
+        </n-form>
+      </template>
+    </n-card>
+
+    <n-card class="section-card" title="Ressources mises en favoris">
+      <div class="scroll-container">
         <n-space vertical>
-          <n-card v-for="resource in favoriteResources" :key="resource.id" class="resource-card">
-            <h3>{{ resource.title }}</h3>
-            <p>{{ resource.description }}</p>
-            <n-button type="info" @click="goToResource(resource.id)">Voir la ressource</n-button>
+          <n-card v-for="r in favorites" :key="r.id" class="resource-card">
+            <h3 class="resource-title">{{ r.title }}</h3>
+            <p>{{ r.description }}</p>
+            <n-button @click="viewResource(r.id)">Voir</n-button>
           </n-card>
         </n-space>
-      </n-card>
+      </div>
+    </n-card>
 
-      <n-card class="stats-section" title="Statistiques" style="margin-top: 20px;">
-        <n-space justify="center" class="n-button-group">
-          <n-button @click="selectedChart = 'week'">Semaine</n-button>
-          <n-button @click="selectedChart = 'month'">Mois</n-button>
-          <n-button @click="selectedChart = 'year'">Année</n-button>
+    <n-card class="section-card" title="Ressources exploitées">
+      <div class="scroll-container">
+        <n-space vertical>
+          <n-card v-for="r in exploited" :key="r.id" class="resource-card">
+            <h3 class="resource-title">{{ r.title }}</h3>
+            <p>{{ r.description }}</p>
+            <n-button @click="viewResource(r.id)">Voir</n-button>
+          </n-card>
         </n-space>
-        <div class="stats-container">
-          <v-chart :option="chartOption" style="height: 300px; width: 100%;" />
-        </div>
-      </n-card>
-    </div>
-  </div>
+      </div>
+    </n-card>
 
-  <!-- Modal pour changer le mot de passe -->
-  <n-modal v-model:show="showModal" preset="card" title="Modifier le mot de passe">
-    <n-form @submit.prevent="changePassword">
-      <n-form-item label="Votre ancien mot de passe">
-        <n-input type="password" v-model="lastPassword" placeholder="Entrez votre ancien mot de passe" />
-      </n-form-item>
-      <n-form-item label="Nouveau mot de passe">
-        <n-input type="password" v-model="newPassword" placeholder="Entrez un nouveau mot de passe" />
-      </n-form-item>
-      <n-form-item label="Confirmer le mot de passe">
-        <n-input type="password" v-model="confirmPassword" placeholder="Confirmez le mot de passe" />
-      </n-form-item>
-      <p v-if="passwordError" class="error">{{ passwordError }}</p>
-      <n-space justify="end">
-        <n-button @click="showModal = false">Annuler</n-button>
-        <n-button type="primary" @click="changePassword">Enregistrer</n-button>
-      </n-space>
-    </n-form>
-  </n-modal>
+    <n-modal
+  v-model:show="showPasswordModal"
+  preset="dialog"
+  class="password-modal"
+  title="Changer le mot de passe"
+>
+  <n-form
+    :model="passwordForm"
+    label-placement="top"
+    class="password-form"
+    @submit.prevent="changePassword"
+  >
+    <n-form-item label="Mot de passe actuel" path="current">
+      <n-input v-model:value="passwordForm.current" type="password" placeholder="Mot de passe actuel" />
+    </n-form-item>
+
+    <n-form-item label="Nouveau mot de passe" path="new">
+      <n-input v-model:value="passwordForm.new" type="password" placeholder="Nouveau mot de passe" />
+    </n-form-item>
+
+    <n-form-item label="Confirmation" path="confirm">
+      <n-input v-model:value="passwordForm.confirm" type="password" placeholder="Confirmer le mot de passe" />
+    </n-form-item>
+
+    <n-space justify="end" size="large">
+      <n-button @click="showPasswordModal = false">Annuler</n-button>
+      <n-button type="primary" attr-type="submit">Changer</n-button>
+    </n-space>
+  </n-form>
+</n-modal>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import VChart from 'vue-echarts'
-import { use } from 'echarts/core'
-import { LineChart, BarChart } from 'echarts/charts'
-import {
-  TitleComponent,
-  TooltipComponent,
-  GridComponent,
-  LegendComponent
-} from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { useMessage } from 'naive-ui'
 
-use([
-  LineChart,
-  BarChart,
-  TitleComponent,
-  TooltipComponent,
-  GridComponent,
-  LegendComponent,
-  CanvasRenderer
-])
+const router = useRouter()
+const message = useMessage()
 
-const showModal = ref(false)
-const lastPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const passwordError = ref('')
-const selectedChart = ref('week')
-
-const favoriteResources = ref([
-  { id: 1, title: 'Ressource 1', description: 'Description de la ressource 1' },
-  { id: 2, title: 'Ressource 2', description: 'Description de la ressource 2' }
-])
-
-const user = ref({
-  name: 'Doe',
-  firstName: 'John',
-  email: 'john.doe@example.com'
-})
-
+const user = ref({})
+const edited = ref({})
+const favorites = ref([])
+const exploited = ref([])
 const editingProfile = ref(false)
+const showPasswordModal = ref(false)
 
-const weekChart = ref({
-  tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] },
-  yAxis: { type: 'value' },
-  series: [
-    {
-      name: 'Consultations',
-      type: 'bar',
-      data: [120, 132, 101, 134, 90, 230, 210]
-    }
-  ]
+const passwordForm = ref({
+  current: '',
+  new: '',
+  confirm: ''
 })
 
-const monthChart = ref({
-  tooltip: { trigger: 'axis' },
-  xAxis: {
-    type: 'category',
-    data: Array.from({ length: 30 }, (_, i) => `Jour ${i + 1}`)
-  },
-  yAxis: { type: 'value' },
-  series: [
-    {
-      name: 'Consultations',
-      type: 'line',
-      smooth: true,
-      data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 200) + 50)
-    }
-  ]
+const defaultAvatar = 'https://i.pravatar.cc/100'
+const defaultCover = '/images/default-cover.jpg'
+
+const api = axios.create({
+  baseURL: '/api',
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem('jwt_token')}`
+  }
 })
 
-const yearChart = ref({
-  tooltip: { trigger: 'axis' },
-  xAxis: {
-    type: 'category',
-    data: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
-  },
-  yAxis: { type: 'value' },
-  series: [
-    {
-      name: 'Consultations',
-      type: 'bar',
-      data: [820, 932, 901, 934, 1290, 1330, 1320, 1450, 1200, 1100, 950, 1230]
-    }
-  ]
-})
-
-const chartOption = computed(() => {
-  if (selectedChart.value === 'month') return monthChart.value
-  if (selectedChart.value === 'year') return yearChart.value
-  return weekChart.value
-})
-
-function editProfile() {
-  editingProfile.value = true
+async function loadUser() {
+  try {
+    const [u, fav, exp] = await Promise.all([
+      api.get('/users/me'),
+      api.get('/resources/favorites'),
+      api.get('/resources/exploited')
+    ])
+    user.value = u.data
+    edited.value = { ...u.data }
+    favorites.value = fav.data
+    exploited.value = exp.data
+  } catch (e) {
+    console.error('Erreur chargement', e)
+  }
 }
 
-function cancelEditProfile() {
+function updateAvatar(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  api.post('/users/avatar', formData).then(loadUser)
+}
+
+function updateCover(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  api.post('/users/cover', formData).then(loadUser)
+}
+
+function saveProfile() {
+  api.patch('/users/me', edited.value).then(res => {
+    user.value = res.data
+    editingProfile.value = false
+  })
+}
+
+function cancelEdit() {
+  edited.value = { ...user.value }
   editingProfile.value = false
 }
 
-function saveProfileChanges() {
-  console.log('Modifications du profil sauvegardées', user.value)
-  editingProfile.value = false
-}
-
-function showPasswordModal() {
-  showModal.value = true
+function viewResource(id) {
+  router.push(`/resources/${id}`)
 }
 
 function changePassword() {
-  if (!newPassword.value) {
-    passwordError.value = 'Le mot de passe est requis.'
-    return
-  }
-  if (newPassword.value.length < 6) {
-    passwordError.value = 'Le mot de passe doit contenir au moins 6 caractères.'
-    return
-  }
-  if (!/[A-Z]/.test(newPassword.value)) {
-    passwordError.value = 'Le mot de passe doit contenir au moins une majuscule.'
-    return
-  }
-  if (!/\d/.test(newPassword.value)) {
-    passwordError.value = 'Le mot de passe doit contenir au moins un chiffre.'
-    return
-  }
-  if (newPassword.value !== confirmPassword.value) {
-    passwordError.value = 'Les mots de passe ne correspondent pas.'
+  if (passwordForm.value.new !== passwordForm.value.confirm) {
+    message.error('Les mots de passe ne correspondent pas.')
     return
   }
 
-  passwordError.value = ''
-  showModal.value = false
-  console.log('Mot de passe changé avec succès !')
+  api.post('/users/change-password', {
+    currentPassword: passwordForm.value.current,
+    newPassword: passwordForm.value.new
+  })
+    .then(() => {
+      message.success('Mot de passe changé !')
+      showPasswordModal.value = false
+      passwordForm.value = { current: '', new: '', confirm: '' }
+    })
+    .catch(() => {
+      message.error('Erreur lors du changement de mot de passe')
+    })
 }
 
-function goToResource(id) {
-  console.log('Redirection vers la ressource', id)
-}
+onMounted(loadUser)
 </script>
 
 <style scoped>
-.cover-photo {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  border-radius: 8px;
-  margin-bottom: 60px;
+.profile-page {
+  margin: auto;
+  padding: 40px 20px;
+  background-color: #f4f6f9;
 }
 
-.cover-photo img {
+.profile-header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.cover-wrapper {
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cover-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.profile-avatar {
+.upload-cover,
+.upload-avatar {
   position: absolute;
-  bottom: -50px;
+  cursor: pointer;
+  opacity: 0.8;
+  background: white;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.upload-cover {
+  top: 10px;
+  right: 10px;
+}
+
+.avatar-wrapper {
+  position: absolute;
+  top: 130px;
   left: 50%;
   transform: translateX(-50%);
-  border: 4px solid white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.profile-container {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch; /* étire les enfants à la même hauteur */
-  gap: 20px;
-  padding: 40px 20px;
+.upload-avatar {
+  bottom: -10px;
+  right: -10px;
 }
 
-.left-column {
-  flex: 0 0 300px;
-}
-
-.right-column {
-  flex: 1;
-  min-width: 300px;
+.profile-name {
+  margin-top: 70px;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .profile-card,
-.favorites-section,
-.stats-section {
-  padding: 20px;
-}
-
-.profile-info p {
-  margin: 5px 0;
-}
-
-.error {
-  color: red;
-  font-size: 14px;
+.section-card {
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
 }
 
 .resource-card {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+.profile-page {
+  margin: auto;
+  padding: 40px 20px;
+  background-color: #f4f6f9;
+  max-width: 900px;
 }
 
-.stats-container {
-  min-height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.profile-header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
 }
 
-.n-button-group {
-  margin-top: 10px;
+.cover-wrapper {
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
 }
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-cover,
+.upload-avatar {
+  position: absolute;
+  cursor: pointer;
+  opacity: 0.8;
+  background: white;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.upload-cover {
+  top: 10px;
+  right: 10px;
+}
+
+.avatar-wrapper {
+  position: absolute;
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.upload-avatar {
+  bottom: -10px;
+  right: -10px;
+}
+
+.profile-name {
+  margin-top: 70px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.profile-card,
+.section-card {
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+}
+
+.resource-card {
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.resource-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+
 </style>

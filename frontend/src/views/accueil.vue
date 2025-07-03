@@ -1,10 +1,8 @@
 <template>
   <div class="landing-page">
-    <!-- Contenu principal de la page -->
     <div class="content">
       <h1 class="main-title">Resources Relationnelles</h1>
       <p class="description">
-        La plateforme sociale pour partager, découvrir et collaborer autour de ressources humaines et professionnelles.
       </p>
 
       <div class="features fade-in">
@@ -14,7 +12,6 @@
         <n-tag type="error" size="large" round>Sécurité des données</n-tag>
       </div>
 
-      <!-- Bouton qui redirige vers la page d'inscription -->
       <n-button
         quaternary
         size="large"
@@ -33,7 +30,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const goToRegister = () => {
-  router.push('/inscription') // Redirige vers la page d'inscription
+  router.push('/inscription') 
 }
 </script>
 

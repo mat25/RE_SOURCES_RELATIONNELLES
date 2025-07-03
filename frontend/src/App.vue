@@ -27,4 +27,8 @@ main {
   height: auto;
   background-color: rgba(13, 52, 158, 0.15);
 }
+
+*{
+  color: black;
+}
 </style>

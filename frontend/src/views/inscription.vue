@@ -9,7 +9,6 @@
         @submit.prevent="submitInscription"
       >
         <n-space vertical size="large">
-          <!-- First and Last name -->
           <n-form-item label="Prénom" path="firstName">
             <n-input v-model:value="credentials.firstName" placeholder="Jean" class="input-field" />
           </n-form-item>
@@ -17,17 +16,14 @@
             <n-input v-model:value="credentials.lastName" placeholder="Dupont" class="input-field" />
           </n-form-item>
 
-          <!-- Username -->
           <n-form-item label="Pseudo" path="username">
             <n-input v-model:value="credentials.username" placeholder="jean_du_25" class="input-field" />
           </n-form-item>
 
-          <!-- Email -->
           <n-form-item label="Email" path="email">
             <n-input v-model:value="credentials.email" placeholder="exemple@email.com" class="input-field" />
           </n-form-item>
 
-          <!-- Password -->
           <n-form-item label="Mot de passe" path="password">
             <n-input
               v-model:value="credentials.password"
@@ -38,7 +34,6 @@
             />
           </n-form-item>
 
-          <!-- Confirm Password -->
           <n-form-item label="Confirmer le mot de passe" path="confirmPassword">
             <n-input
               v-model:value="credentials.confirmPassword"
@@ -49,7 +44,6 @@
             />
           </n-form-item>
 
-          <!-- Submit Button -->
           <n-button
             type="primary"
             block
@@ -62,9 +56,8 @@
             Créer un compte
           </n-button>
 
-          <!-- Link to login if already have an account -->
           <p class="login-link">
-            Vous avez déjà un compte ? <a href="/login">Connectez-vous ici</a>.
+            Vous avez déjà un compte ? <a href="/connexion">Connectez-vous ici</a>.
           </p>
         </n-space>
       </n-form>
@@ -75,10 +68,12 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useMessage } from 'naive-ui'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const formRef = ref(null)
 const message = useMessage()
+const router = useRouter()
 
 const credentials = reactive({
   firstName: '',
@@ -128,7 +123,7 @@ const submitInscription = async () => {
         localStorage.setItem('token', token)
 
         message.success('Inscription réussie 🎉')
-        this.$router.push('/');
+        router.push('/')
       } catch (err) {
         console.error(err)
         message.error('Erreur lors de l’inscription')
@@ -159,7 +154,6 @@ const submitInscription = async () => {
   border-radius: 12px;
   border: 1px solid #ddd;
   margin: 0 auto;
-  /* Limite la hauteur du formulaire pour éviter qu'il soit trop grand */
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -168,13 +162,12 @@ const submitInscription = async () => {
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 16px;
-  transition: border-color 0.3s ease;
-  border: 1px solid #ccc; /* Bordure douce */
+  border: 1px solid #ccc;
   margin-bottom: 20px;
 }
 
 .input-field:focus {
-  border-color: #007bff; /* Changement de couleur au focus */
+  border-color: #007bff;
 }
 
 .submit-button {
@@ -183,11 +176,11 @@ const submitInscription = async () => {
   padding: 14px;
   font-size: 18px;
   transition: all 0.3s;
-  margin-top: 20px; /* Espace entre les champs et le bouton */
+  margin-top: 20px;
 }
 
 .submit-button:hover {
-  background-color: #0056b3; /* Bleu foncé au survol */
+  background-color: #0056b3; 
   transform: scale(1.05);
 }
 
@@ -198,7 +191,7 @@ const submitInscription = async () => {
 .login-link {
   text-align: center;
   margin-top: 10px;
-  font-size: 12px; /* Taille réduite */
+  font-size: 12px; 
 }
 
 .login-link a {
