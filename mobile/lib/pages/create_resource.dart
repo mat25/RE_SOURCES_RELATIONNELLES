@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
-import '../widgets/Resource/create_resource_widget.dart';
+import '../widgets/resource/create_resource_widget.dart';
 
 class CreateResource extends StatelessWidget {
   const CreateResource({super.key});
