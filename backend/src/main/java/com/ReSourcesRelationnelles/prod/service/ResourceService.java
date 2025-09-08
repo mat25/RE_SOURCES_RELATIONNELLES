@@ -33,41 +33,6 @@ public class ResourceService {
     @Autowired
     private SecurityUtils securityUtils;
 
-    public List<ResourceDTO> getAllResources(Authentication authentication) {
-        List<Resource> allResources = resourceRepository.findAll();
-        List<ResourceDTO> filteredResources = new ArrayList<>();
-
-        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
-                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
-                : null;
-
-        for (Resource resource : allResources) {
-            if (!resource.isActive()) continue;
-
-            boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
-                    resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
-
-            boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
-
-            if (isAcceptedAndPublic || isOwner) {
-                if (currentUser != null) {
-                    ResourceUserProgression progression = resource
-                            .getProgressions()
-                            .stream()
-                            .filter(p -> p.getUser().getId().equals(currentUser.getId()))
-                            .findFirst()
-                            .orElse(null);
-
-                    filteredResources.add(new ResourceDTO(resource, progression));
-                } else {
-                    filteredResources.add(new ResourceDTO(resource));
-                }
-            }
-        }
-
-        return filteredResources;
-    }
-
     public ResourceDTO getResourceById(Long resourceId, Authentication authentication) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
@@ -85,7 +50,13 @@ public class ResourceService {
 
         boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
 
-        if (!isAcceptedAndPublic && !isOwner) {
+        boolean isModeratorOrHigher = currentUser != null && (
+                currentUser.getRole().getName() == RoleEnum.MODERATOR ||
+                        currentUser.getRole().getName() == RoleEnum.ADMIN ||
+                        currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN
+        );
+
+        if (!isAcceptedAndPublic && !isOwner && !isModeratorOrHigher) {
             throw new BadRequestException("Vous n'avez pas accès à cette ressource.");
         }
 
@@ -99,6 +70,47 @@ public class ResourceService {
         }
 
         return new ResourceDTO(resource);
+    }
+
+    public List<ResourceDTO> getAllResources(Authentication authentication) {
+        List<Resource> allResources = resourceRepository.findAll();
+        List<ResourceDTO> filteredResources = new ArrayList<>();
+
+        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
+                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
+                : null;
+
+        boolean isModeratorOrHigher = currentUser != null && (
+                currentUser.getRole().getName() == RoleEnum.MODERATOR ||
+                        currentUser.getRole().getName() == RoleEnum.ADMIN ||
+                        currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN
+        );
+
+        for (Resource resource : allResources) {
+            if (!resource.isActive()) continue;
+
+            boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
+                    resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
+
+            boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+
+            if (isAcceptedAndPublic || isOwner || isModeratorOrHigher) {
+                if (currentUser != null) {
+                    ResourceUserProgression progression = resource
+                            .getProgressions()
+                            .stream()
+                            .filter(p -> p.getUser().getId().equals(currentUser.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    filteredResources.add(new ResourceDTO(resource, progression));
+                } else {
+                    filteredResources.add(new ResourceDTO(resource));
+                }
+            }
+        }
+
+        return filteredResources;
     }
 
     public ResourceDTO createResource(CreateResourceDTO request, Authentication authentication) {
