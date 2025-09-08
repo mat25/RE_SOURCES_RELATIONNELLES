@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'   # déclenche uniquement sur les tags qui commencent par "v" (ex: v1.0.0)
 
+permissions:
+  contents: write   # 🔑 permet de créer une release avec GITHUB_TOKEN
+
 jobs:
   build-release:
     name: Build & Release
@@ -80,9 +83,11 @@ jobs:
           cp mobile/build/app/outputs/flutter-apk/app-release.apk out/mobile-app-release.apk || echo "Pas d'APK généré"
 
       # --- Create GitHub Release ---
-      - name: Upload Release Assets
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           files: out/*
+          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
