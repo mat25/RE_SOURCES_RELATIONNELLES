@@ -18,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Flutter >= 3.35.3 pour Dart >= 3.7 (conforme à ton pubspec)
       - name: Setup Flutter 3.35.3 (stable)
         uses: subosito/flutter-action@v2
         with:
@@ -48,36 +49,45 @@ jobs:
           fi
 
       - name: Analyse (lint) — best effort
+        continue-on-error: true
         working-directory: mobile
         run: |
           if [ -f pubspec.yaml ]; then
-            flutter analyze || echo "Analyse non bloquante (continue)"
+            flutter analyze
+          else
+            echo "skip analyze"
           fi
 
       - name: Tests Flutter — best effort
+        continue-on-error: true
         working-directory: mobile
         run: |
-          if [ -d test ]; then
-            flutter test || echo "Tests non bloquants (continue)"
+          if [ -f pubspec.yaml ] && [ -d test ]; then
+            flutter test
           else
-            echo "Aucun dossier test/ — skip tests"
+            echo "Aucun test à exécuter"
           fi
 
       - name: Build — dry run
         run: |
           mkdir -p out
           if [ -f mobile/pubspec.yaml ]; then
-            echo "[DRY-RUN] flutter build apk --release" | tee out/mobile-dryrun.txt
-            echo "[DRY-RUN] flutter build appbundle --release" | tee -a out/mobile-dryrun.txt
-            echo "[DRY-RUN] (iOS) flutter build ipa --release" | tee -a out/mobile-dryrun.txt
+            {
+              echo "[DRY-RUN] flutter build apk --release"
+              echo "[DRY-RUN] flutter build appbundle --release"
+              echo "[DRY-RUN] (iOS) flutter build ipa --release"
+            } | tee out/mobile-dryrun.txt
           else
             echo "pubspec.yaml introuvable — rien à builder" | tee out/mobile-dryrun.txt
           fi
 
-      - name: Artefacts (dummy)
-        run: tar -czf out/mobile-dryrun-logs.tgz -C out .
+      # ⚠️ Créer l'archive EN DEHORS de out/ pour éviter le 'file changed as we read it'
+      - name: Artefacts (logs dry-run)
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/mobile-dryrun-logs.tgz -C out .
 
       - uses: actions/upload-artifact@v4
         with:
           name: mobile-dryrun-artifacts
-          path: out/*
+          path: artifacts/*
