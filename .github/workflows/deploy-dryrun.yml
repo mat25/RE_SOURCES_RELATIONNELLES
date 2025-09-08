@@ -1,0 +1,154 @@
+name: deploy-dryrun
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environnement visé"
+        type: choice
+        required: true
+        options: [staging, prod]
+        default: staging
+      host:
+        description: "Hôte SSH (ex: user@server.example)"
+        required: false
+        default: "deploy@server.example"
+      stack_name:
+        description: "Nom du stack / dossier (ex: re-sources)"
+        required: false
+        default: "re-sources"
+      compose_path:
+        description: "Chemin docker compose côté serveur"
+        required: false
+        default: "/opt/stacks/re-sources/docker-compose.yml"
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-dryrun:
+    name: Deploy — dry run
+    runs-on: ubuntu-latest
+
+    env:
+      SHA: ${{ github.sha }}
+      REF_NAME: ${{ github.ref_name }}
+      ENVIRONMENT: ${{ inputs.environment || 'staging' }}
+      HOST: ${{ inputs.host || 'deploy@server.example' }}
+      STACK_NAME: ${{ inputs.stack_name || 're-sources' }}
+      COMPOSE_PATH: ${{ inputs.compose_path || '/opt/stacks/re-sources/docker-compose.yml' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Résumé des paramètres
+        run: |
+          echo "Env        : $ENVIRONMENT"
+          echo "Host       : $HOST"
+          echo "Stack name : $STACK_NAME"
+          echo "Compose    : $COMPOSE_PATH"
+          echo "Ref        : $REF_NAME"
+          echo "SHA        : $SHA"
+
+      - name: Déterminer les tags d'images (backend / frontend)
+        id: tags
+        run: |
+          # Exemple de tagging: registry interne + ref
+          BACKEND_TAG="example.local/re-sources-backend:${SHA}"
+          FRONTEND_TAG="example.local/re-sources-frontend:${SHA}"
+
+          # Si 'main' => aussi un tag 'latest'
+          if [ "$REF_NAME" = "main" ]; then
+            BACKEND_LATEST="example.local/re-sources-backend:latest"
+            FRONTEND_LATEST="example.local/re-sources-frontend:latest"
+          else
+            BACKEND_LATEST=""
+            FRONTEND_LATEST=""
+          fi
+
+          echo "BACKEND_TAG=$BACKEND_TAG" >> $GITHUB_OUTPUT
+          echo "FRONTEND_TAG=$FRONTEND_TAG" >> $GITHUB_OUTPUT
+          echo "BACKEND_LATEST=$BACKEND_LATEST" >> $GITHUB_OUTPUT
+          echo "FRONTEND_LATEST=$FRONTEND_LATEST" >> $GITHUB_OUTPUT
+
+      - name: Générer le plan de déploiement (dry run)
+        run: |
+          mkdir -p out
+
+          {
+            echo "=== DEPLOY DRY-RUN ==="
+            echo "Date: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "Env:  $ENVIRONMENT"
+            echo "Host: $HOST"
+            echo
+            echo "Images prévues :"
+            echo "  - Backend : ${{ steps.tags.outputs.BACKEND_TAG }}"
+            echo "  - Frontend: ${{ steps.tags.outputs.FRONTEND_TAG }}"
+            if [ -n "${{ steps.tags.outputs.BACKEND_LATEST }}" ]; then
+              echo "  - Backend (latest): ${{ steps.tags.outputs.BACKEND_LATEST }}"
+            fi
+            if [ -n "${{ steps.tags.outputs.FRONTEND_LATEST }}" ]; then
+              echo "  - Frontend (latest): ${{ steps.tags.outputs.FRONTEND_LATEST }}"
+            fi
+            echo
+            echo "Commandes (simulation) :"
+            echo "  # 1) Connexion au serveur"
+            echo "  ssh $HOST 'uname -a && whoami'"
+            echo
+            echo "  # 2) Se placer dans le dossier du stack"
+            echo "  ssh $HOST 'cd $(dirname "$COMPOSE_PATH") && ls -la'"
+            echo
+            echo "  # 3) Mettre à jour les images"
+            echo "  ssh $HOST \"cd $(dirname '$COMPOSE_PATH') && \\"
+            echo "    docker compose -f '$COMPOSE_PATH' pull && \\"
+            echo "    docker compose -f '$COMPOSE_PATH' images\""
+            echo
+            echo "  # 4) Démarrer / recréer les services"
+            echo "  ssh $HOST \"cd $(dirname '$COMPOSE_PATH') && \\"
+            echo "    docker compose -f '$COMPOSE_PATH' up -d\""
+            echo
+            echo "  # 5) Vérification post-déploiement"
+            echo "  ssh $HOST \"cd $(dirname '$COMPOSE_PATH') && \\"
+            echo "    docker compose -f '$COMPOSE_PATH' ps && \\"
+            echo "    docker compose -f '$COMPOSE_PATH' logs --since=5m\""
+            echo
+            echo "Remarques :"
+            echo " - Ce workflow est un DRY-RUN : aucune commande distante n'est réellement exécutée."
+            echo " - Ajuste le registry (example.local) et le COMPOSE_PATH selon ton infra."
+            echo " - Tu peux alimenter un .env côté serveur pour injecter les tags d'images."
+          } | tee out/deploy-plan.txt
+
+      - name: Rappels de configuration (dry)
+        run: |
+          cat <<'TXT' | tee out/deploy-notes.txt
+          Exemple d'extrait docker-compose.yml (côté serveur) :
+
+            services:
+              backend:
+                image: example.local/re-sources-backend:${SHA}
+                # env_file: .env
+                # environment:
+                #   SPRING_PROFILES_ACTIVE: prod
+              frontend:
+                image: example.local/re-sources-frontend:${SHA}
+                # ports:
+                #   - "80:80"
+
+          Pour utiliser un .env côté serveur :
+            IMAGE_BACKEND=example.local/re-sources-backend:${SHA}
+            IMAGE_FRONTEND=example.local/re-sources-frontend:${SHA}
+
+          Et référencer dans compose :
+            image: ${IMAGE_BACKEND}
+            image: ${IMAGE_FRONTEND}
+          TXT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy-dryrun-artifacts
+          path: out/*
