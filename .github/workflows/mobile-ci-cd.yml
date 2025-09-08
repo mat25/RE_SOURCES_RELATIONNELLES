@@ -49,14 +49,15 @@ jobs:
           fi
 
       - name: Analyse (lint) — best effort
-        continue-on-error: true
         working-directory: mobile
+        continue-on-error: true
         run: |
-          if [ -f pubspec.yaml ]; then
+            if [ -f pubspec.yaml ]; then
             flutter analyze
-          else
+            else
             echo "skip analyze"
-          fi
+            fi
+
 
       - name: Tests Flutter — best effort
         continue-on-error: true
