@@ -1,0 +1,87 @@
+name: mobile-ci-cd-dryrun
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-dryrun:
+    name: Mobile — dry run (Flutter)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Pub (packages)
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('mobile/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Flutter doctor (info)
+        run: flutter doctor -v
+
+      - name: Install deps
+        working-directory: mobile
+        run: |
+          if [ -f pubspec.yaml ]; then
+            flutter pub get
+          else
+            echo "pubspec.yaml introuvable dans mobile/ — skip pub get"
+          fi
+
+      - name: Analyse (lint) — best effort
+        working-directory: mobile
+        run: |
+          if [ -f pubspec.yaml ]; then
+            flutter analyze || echo "Analyse non bloquante (continue)"
+          fi
+
+      - name: Tests Flutter — best effort
+        working-directory: mobile
+        run: |
+          if [ -d test ]; then
+            flutter test || echo "Tests non bloquants (continue)"
+          else
+            echo "Aucun dossier test/ — skip tests"
+          fi
+
+      - name: Build — dry run
+        run: |
+          mkdir -p out
+          if [ -f mobile/pubspec.yaml ]; then
+            echo "[DRY-RUN] flutter build apk --release" | tee out/mobile-dryrun.txt
+            echo "[DRY-RUN] flutter build appbundle --release" | tee -a out/mobile-dryrun.txt
+            echo "[DRY-RUN] (iOS) flutter build ipa --release" | tee -a out/mobile-dryrun.txt
+          else
+            echo "pubspec.yaml introuvable — rien à builder" | tee out/mobile-dryrun.txt
+          fi
+
+      - name: Artefacts (dummy)
+        run: |
+          # Archive légère pour visualiser l’output du dry-run
+          tar -czf out/mobile-dryrun-logs.tgz -C out .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-dryrun-artifacts
+          path: out/*
