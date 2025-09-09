@@ -1,29 +1,39 @@
 package com.ReSourcesRelationnelles.prod.service;
 
-import com.ReSourcesRelationnelles.prod.dto.MessageDTO;
-import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
-import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
-import com.ReSourcesRelationnelles.prod.entity.*;
-import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
-import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
-import com.ReSourcesRelationnelles.prod.repository.CategoryRepository;
-import com.ReSourcesRelationnelles.prod.repository.ResourceRepository;
-import com.ReSourcesRelationnelles.prod.repository.UserRepository;
-import com.ReSourcesRelationnelles.prod.security.SecurityUtils;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import com.ReSourcesRelationnelles.prod.dto.MessageDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.CreateResourceDTO;
+import com.ReSourcesRelationnelles.prod.dto.resource.ResourceDTO;
+import com.ReSourcesRelationnelles.prod.entity.Category;
+import com.ReSourcesRelationnelles.prod.entity.Resource;
+import com.ReSourcesRelationnelles.prod.entity.ResourceStatusEnum;
+import com.ReSourcesRelationnelles.prod.entity.ResourceTypeEnum;
+import com.ReSourcesRelationnelles.prod.entity.ResourceUserProgression;
+import com.ReSourcesRelationnelles.prod.entity.ResourceVisibilityEnum;
+import com.ReSourcesRelationnelles.prod.entity.RoleEnum;
+import com.ReSourcesRelationnelles.prod.entity.User;
+import com.ReSourcesRelationnelles.prod.exception.BadRequestException;
+import com.ReSourcesRelationnelles.prod.exception.NotFoundException;
+import com.ReSourcesRelationnelles.prod.repository.CategoryRepository;
+import com.ReSourcesRelationnelles.prod.repository.ResourceRepository;
+import com.ReSourcesRelationnelles.prod.repository.UserRepository;
+import com.ReSourcesRelationnelles.prod.security.SecurityUtils;
 
 @Service
 public class ResourceService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     @Autowired
     private ResourceRepository resourceRepository;
     @Autowired
@@ -33,6 +43,16 @@ public class ResourceService {
     @Autowired
     private SecurityUtils securityUtils;
 
+    /** Retourne true si l'utilisateur a l'un des rôles donnés. Null-safe. */
+    private boolean hasAnyRole(User u, RoleEnum... roles) {
+        if (u == null || u.getRole() == null || u.getRole().getName() == null) return false;
+        RoleEnum name = u.getRole().getName();
+        for (RoleEnum r : roles) {
+            if (name == r) return true;
+        }
+        return false;
+    }
+
     public ResourceDTO getResourceById(Long resourceId, Authentication authentication) {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
@@ -41,31 +61,39 @@ public class ResourceService {
             throw new NotFoundException("Ressource supprimée.");
         }
 
-        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
-                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
-                : null;
+        // Récupération de l'utilisateur courant (peut être null si non authentifié)
+        final User currentUser =
+                (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
+                        ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
+                        : null;
 
-        boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
-                resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
+        boolean isAcceptedAndPublic =
+                resource.getStatus() == ResourceStatusEnum.ACCEPTED
+                        && resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
 
-        boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+        boolean isOwner = currentUser != null
+                && resource.getCreator() != null
+                && Objects.equals(resource.getCreator().getId(), currentUser.getId());
 
-        boolean isModeratorOrHigher = currentUser != null && (
-                currentUser.getRole().getName() == RoleEnum.MODERATOR ||
-                        currentUser.getRole().getName() == RoleEnum.ADMIN ||
-                        currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN
-        );
+        boolean isModeratorOrHigher = hasAnyRole(currentUser,
+                RoleEnum.MODERATOR, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN);
 
         if (!isAcceptedAndPublic && !isOwner && !isModeratorOrHigher) {
             throw new BadRequestException("Vous n'avez pas accès à cette ressource.");
         }
 
         if (currentUser != null) {
-            ResourceUserProgression progression = resource.getProgressions()
-                    .stream()
-                    .filter(p -> p.getUser().getId().equals(currentUser.getId()))
-                    .findFirst()
-                    .orElse(null);
+            ResourceUserProgression progression = (resource.getProgressions() != null)
+                    ? resource.getProgressions().stream()
+                        .filter(p -> p != null
+                                && p.getUser() != null
+                                && p.getUser().getId() != null
+                                && currentUser.getId() != null
+                                && p.getUser().getId().equals(currentUser.getId()))
+                        .findFirst()
+                        .orElse(null)
+                    : null;
+
             return new ResourceDTO(resource, progression);
         }
 
@@ -76,32 +104,37 @@ public class ResourceService {
         List<Resource> allResources = resourceRepository.findAll();
         List<ResourceDTO> filteredResources = new ArrayList<>();
 
-        final User currentUser = (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
-                ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
-                : null;
+        final User currentUser =
+                (authentication != null && authentication.getName() != null && !authentication.getName().isBlank())
+                        ? userRepository.findByUsernameAndDeletedFalse(authentication.getName())
+                        : null;
 
-        boolean isModeratorOrHigher = currentUser != null && (
-                currentUser.getRole().getName() == RoleEnum.MODERATOR ||
-                        currentUser.getRole().getName() == RoleEnum.ADMIN ||
-                        currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN
-        );
+        boolean isModeratorOrHigher = hasAnyRole(currentUser,
+                RoleEnum.MODERATOR, RoleEnum.ADMIN, RoleEnum.SUPER_ADMIN);
 
         for (Resource resource : allResources) {
-            if (!resource.isActive()) continue;
+            if (resource == null || !resource.isActive()) continue;
 
-            boolean isAcceptedAndPublic = resource.getStatus() == ResourceStatusEnum.ACCEPTED &&
-                    resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
+            boolean isAcceptedAndPublic =
+                    resource.getStatus() == ResourceStatusEnum.ACCEPTED
+                            && resource.getVisibility() == ResourceVisibilityEnum.PUBLIC;
 
-            boolean isOwner = currentUser != null && resource.getCreator().getId().equals(currentUser.getId());
+            boolean isOwner = currentUser != null
+                    && resource.getCreator() != null
+                    && Objects.equals(resource.getCreator().getId(), currentUser.getId());
 
             if (isAcceptedAndPublic || isOwner || isModeratorOrHigher) {
                 if (currentUser != null) {
-                    ResourceUserProgression progression = resource
-                            .getProgressions()
-                            .stream()
-                            .filter(p -> p.getUser().getId().equals(currentUser.getId()))
-                            .findFirst()
-                            .orElse(null);
+                    ResourceUserProgression progression = (resource.getProgressions() != null)
+                            ? resource.getProgressions().stream()
+                                .filter(p -> p != null
+                                        && p.getUser() != null
+                                        && p.getUser().getId() != null
+                                        && currentUser.getId() != null
+                                        && p.getUser().getId().equals(currentUser.getId()))
+                                .findFirst()
+                                .orElse(null)
+                            : null;
 
                     filteredResources.add(new ResourceDTO(resource, progression));
                 } else {
@@ -114,7 +147,7 @@ public class ResourceService {
     }
 
     public ResourceDTO createResource(CreateResourceDTO request, Authentication authentication) {
-        if (authentication == null || authentication.getName().isBlank()) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             throw new BadRequestException("Utilisateur non identifié.");
         }
 
@@ -151,11 +184,12 @@ public class ResourceService {
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Ressource non trouvée."));
 
-        boolean isAdmin = currentUser.getRole().getName() == RoleEnum.ADMIN;
-        boolean isSuperAdmin = currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN;
+        boolean isAdmin = hasAnyRole(currentUser, RoleEnum.ADMIN);
+        boolean isSuperAdmin = hasAnyRole(currentUser, RoleEnum.SUPER_ADMIN);
 
         if (!isAdmin && !isSuperAdmin) {
-            if (!resource.getCreator().getId().equals(currentUser.getId())) {
+            if (resource.getCreator() == null || currentUser == null
+                    || !Objects.equals(resource.getCreator().getId(), currentUser.getId())) {
                 throw new BadRequestException("Vous ne pouvez supprimer que vos propres ressources.");
             }
         }
@@ -163,7 +197,8 @@ public class ResourceService {
         resource.setActive(false);
         resourceRepository.save(resource);
 
-        log.warn("Suppression de la ressource ID {} par l'utilisateur {}", resourceId, currentUser.getUsername());
+        log.warn("Suppression de la ressource ID {} par l'utilisateur {}", resourceId,
+                currentUser != null ? currentUser.getUsername() : "inconnu");
 
         return new MessageDTO("Ressource supprimée avec succès.");
     }
@@ -178,21 +213,19 @@ public class ResourceService {
             throw new BadRequestException("Impossible de modifier une ressource supprimée.");
         }
 
-        boolean isOwner = resource.getCreator().getId().equals(currentUser.getId());
-        boolean isModerator = currentUser.getRole().getName() == RoleEnum.MODERATOR;
-        boolean isAdmin = currentUser.getRole().getName() == RoleEnum.ADMIN;
-        boolean isSuperAdmin = currentUser.getRole().getName() == RoleEnum.SUPER_ADMIN;
+        boolean isOwner = resource.getCreator() != null
+                && currentUser != null
+                && Objects.equals(resource.getCreator().getId(), currentUser.getId());
+        boolean isModerator = hasAnyRole(currentUser, RoleEnum.MODERATOR);
+        boolean isAdmin = hasAnyRole(currentUser, RoleEnum.ADMIN);
+        boolean isSuperAdmin = hasAnyRole(currentUser, RoleEnum.SUPER_ADMIN);
 
+        // Edition par le propriétaire
         if (isOwner) {
-            if (request.getTitle() != null) {
-                resource.setTitle(request.getTitle());
-            }
-            if (request.getContent() != null) {
-                resource.setContent(request.getContent());
-            }
-            if (request.getVideoLink() != null) {
-                resource.setVideoLink(request.getVideoLink());
-            }
+            if (request.getTitle() != null) resource.setTitle(request.getTitle());
+            if (request.getContent() != null) resource.setContent(request.getContent());
+            if (request.getVideoLink() != null) resource.setVideoLink(request.getVideoLink());
+
             if (request.getVisibility() != null) {
                 try {
                     resource.setVisibility(ResourceVisibilityEnum.valueOf(request.getVisibility().toUpperCase()));
@@ -213,10 +246,12 @@ public class ResourceService {
                 resource.setCategory(category);
             }
 
+            // Toute édition propriétaire remet en PENDING
             resource.setStatus(ResourceStatusEnum.PENDING);
         }
 
-        if ((isModerator || isAdmin || isSuperAdmin)) {
+        // Modération (statut) par rôles élevés
+        if (isModerator || isAdmin || isSuperAdmin) {
             if (request.getStatus() == null) {
                 throw new BadRequestException("Statut invalide.");
             }
@@ -232,10 +267,9 @@ public class ResourceService {
         }
 
         Resource updated = resourceRepository.save(resource);
-        log.info("Mise à jour de la ressource ID {} par {}", resourceId, currentUser.getUsername());
+        log.info("Mise à jour de la ressource ID {} par {}", resourceId,
+                currentUser != null ? currentUser.getUsername() : "inconnu");
 
         return new ResourceDTO(updated);
     }
-
-
 }
